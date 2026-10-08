@@ -296,7 +296,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 o</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 p</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -876,7 +876,7 @@ var ok=save();render();
 msg.textContent=ok?"Imported "+add+" readings ("+fmt(mn)+" to "+fmt(mx2)+")"+(dup?", skipped "+dup+" already imported":"")+".":"Imported "+add+" readings, but this device couldn't store them all. Try a shorter date range."}catch(e){msg.textContent="Something went wrong reading that file."}};
 fr.readAsText(f);this.value=""};
 
-var PUSH_URL="";
+var PUSH_URL="https://little-fog-dbffglide-push.avinkurt8.workers.dev";
 function pushOk(){return "serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window}
 function hm(m){m=(m+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%60)}
 function pushItems(){var o=S.rem.map(function(m){return {t:m.t,ti:"Glide: "+m.l,b:"Time to check your blood sugar."}}),c=pbc();
