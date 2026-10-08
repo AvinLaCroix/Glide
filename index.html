@@ -216,9 +216,9 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <section aria-label="Day dial"><h2>Day dial</h2><div id="chart"></div><p class="note">Each dot is a reading. Midnight is at the top. Farther out is higher. Colored arcs mark repeat lows or highs.</p><div id="rpt"></div></section>
 </div>
 <div class="tab" id="t-food" hidden>
-<button id="shopbtn" aria-expanded="false" aria-controls="shop" style="width:100%;margin-bottom:12px">Shopping list</button>
-<section id="shop" aria-label="Shopping list" hidden>
- <h2>Shopping list</h2>
+<button id="shopbtn" aria-expanded="false" aria-controls="shop" style="width:100%;margin-bottom:12px">Plan my groceries</button>
+<section id="shop" aria-label="Plan my groceries" hidden>
+ <h2>Plan my groceries</h2>
  <p style="margin:0 0 8px">How many days of food do you need?</p>
  <div class="chips" id="sd"></div>
  <p style="margin:6px 0 8px">How many people are you feeding?</p>
@@ -230,8 +230,8 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
  <div id="sav" class="note" style="margin:0 0 6px"></div>
  <div id="sres"></div>
 </section>
-<button id="mealbtn" class="sec" aria-expanded="false" aria-controls="meals" style="width:100%;margin-bottom:12px">This week's meals</button>
-<section id="meals" aria-label="This week's meals" hidden><h2>This week's meals</h2><div id="mres"></div></section>
+<button id="mealbtn" class="sec" aria-expanded="false" aria-controls="meals" style="width:100%;margin-bottom:12px">Plan my meals</button>
+<section id="meals" aria-label="Plan my meals" hidden><h2>Plan my meals</h2><div id="mres"></div></section>
 <section aria-label="What can I cook" id="cooksec"><h2>What can I cook?</h2>
 <div class="mrow" style="grid-template-columns:1fr auto"><label>What do you have? (commas)<input id="ig" placeholder="e.g. eggs, spinach, rice"></label><button id="ia">Add</button></div>
 <div class="chips" id="ic"></div><div id="isw"></div>
@@ -290,7 +290,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 k</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 l</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -689,11 +689,11 @@ $("sae").onclick=function(){var d=$("avsec");d.open=true;d.scrollIntoView({behav
 [].forEach.call(sd.children,function(b){b.onclick=function(){S.shop={p:mkPlan(+b.dataset.n),s:mkSn(+b.dataset.n,ns()),done:{}};save();shopRender()}});
 [].forEach.call(sp.children,function(b){b.onclick=function(){S.pp=+b.dataset.n;save();shopRender()}});
 fixSn(sh);
-var mr=$("mres");if(!sh||!sh.p||!sh.p.length){r.innerHTML='<p class="note">Pick the number of days and I will list what to buy.</p>';mr.innerHTML='<p class="note">No meal plan yet. Open Shopping list and pick how many days.</p>';return}
+var mr=$("mres");if(!sh||!sh.p||!sh.p.length){r.innerHTML='<p class="note">Pick the number of days and I will list what to buy.</p>';mr.innerHTML='<p class="note">No meal plan yet. Open Plan my groceries and pick how many days.</p>';return}
 var PK=shopCalc(sh.p,sh.s).pick,LB=["Breakfast","Lunch","Dinner"],meals=sh.p.map(function(d,i){var rs=d.map(byName),sd2=(sh.s&&sh.s[i])||[],tot=rs.reduce(function(s,x){return s+(x?x[1]:0)},0)+sd2.reduce(function(s,n){var x=snBy(n);return s+(x?x[1]:0)},0);
 return '<div class="day"><h3 class="dh">Day '+(i+1)+' <span class="note">about '+tot+' g carbs</span></h3>'+LB.map(function(k,j){var rr=rs[j];
 return '<div class="mealb"><div class="mh"><span class="ml">'+k+'</span>'+(rr?'<button class="sec rf" data-sw="'+i+'-'+j+'" aria-label="Refresh '+k.toLowerCase()+' for day '+(i+1)+'">↻ Refresh</button>':'')+'</div>'+(rr?recHtml({r:rr,miss:[],pp:S.pp||1,ctx:"s"+i+"-"+j,pick:PK}):'<p class="note" style="margin:4px 0">No ideas fit what you avoid yet.</p>')+'</div>'}).join("")+sd2.map(function(n,k){var x=snBy(n);return '<div class="mealb"><div class="mh"><span class="ml">Snack</span><button class="sec rf" data-ss="'+i+'-'+k+'" aria-label="Refresh snack '+(k+1)+' for day '+(i+1)+'">↻ Refresh</button></div><details style="box-shadow:none"><summary>'+esc(n)+' <span class="note">~'+x[1]+' g carbs · '+(x[2]==="buy"?"Buy":"Make")+'</span></summary><p style="margin:6px 0">'+esc(x[3])+'</p></details></div>'}).join("")+'</div>'}).join("");
-r.innerHTML=(sh.at?'<div class="sdone"><b>✓ Shopping done '+new Date(sh.at).toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"})+'</b><span>Next trip gets new meals and ingredients.</span><button id="snw">Plan my next trip</button></div>':'')+'<h3 style="margin:14px 0 0">What to buy</h3>'+shopHtml(sh)+picksHtml(sh)+'<p>'+(sh.at?'':'<button id="sdn">Done shopping ✓</button> ')+'<button class="sec" id="scp">Copy list</button> <button class="sec" id="srs">New list</button></p><p class="note">Amounts and prices are rough estimates and vary by store. Your meals for this list are under This week\'s meals.</p>';
+r.innerHTML=(sh.at?'<div class="sdone"><b>✓ Shopping done '+new Date(sh.at).toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"})+'</b><span>Next trip gets new meals and ingredients.</span><button id="snw">Plan my next trip</button></div>':'')+'<h3 style="margin:14px 0 0">What to buy</h3>'+shopHtml(sh)+picksHtml(sh)+'<p>'+(sh.at?'':'<button id="sdn">Done shopping ✓</button> ')+'<button class="sec" id="scp">Copy list</button> <button class="sec" id="srs">New list</button></p><p class="note">Amounts and prices are rough estimates and vary by store. Your meals for this list are under Plan my meals.</p>';
 mr.innerHTML=meals+'<p><button class="sec" id="mrs">Different meals</button></p><p class="note">Carbs are rough estimates. Ask your care team what fits your plan. Changing a meal updates your shopping list.</p>';
 bindAdd(r);bindAdd(mr);
 [].forEach.call(r.querySelectorAll("button[data-pe]"),function(b){b.onclick=function(){editK=editK===b.dataset.pe?null:b.dataset.pe;shopRender();var i=$("pin");if(i)i.focus()}});
