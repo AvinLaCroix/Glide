@@ -288,7 +288,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 h</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 i</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -607,7 +607,7 @@ plan.forEach(function(d){d.forEach(function(nm){var r=byName(nm);if(r)r[2].forEa
 gs.sort(function(a,b){return a.al.length-b.al.length});
 var u=function(src,k){var q=QTY[k],o=QO[src];if(!q)return 1;return (o&&o[k]!=null?o[k]:q[0])/q[0]};
 gs.forEach(function(x){var al=x.al,pk=pick[x.src+"|"+x.gi];if(al.some(hv)){S.ing.forEach(function(v){if(al.some(function(a){return mt2(nz(a),nz(v))}))got[v]=1});return}
-var ok=al.filter(function(a){return a!=="soy sauce"}),c=(pk&&al.indexOf(pk)>=0&&pk)||ok.filter(function(a){return set[a]})[0]||ok[0]||al[0];
+var ok=al.filter(function(a){return a!=="soy sauce"}),c=(pk&&al.indexOf(pk)>=0&&pk)||ok[0]||al[0];
 set[c]=(set[c]||0)+u(x.src,c);cnt[c]=(cnt[c]||0)+1;if(x.gi>=0)pick[x.src+"|"+x.gi]=c});
 return {buy:set,cnt:cnt,got:got,pick:pick}}
 function shopLab(k){return BUY[k]||[k,"Other"]}
