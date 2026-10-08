@@ -288,7 +288,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 e</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 f</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -853,7 +853,7 @@ $("clr").onclick=function(){if(confirm("Delete all readings?")){S.r=[];save();re
 /* ---- Fitness ---- */
 var FQ=[
 {k:"sex",q:"Are you male or female?",o:[["m","","Male"],["f","","Female"],["x","","Prefer not to say"]]},
-{k:"goal",q:"What's your main goal?",o:[["str","💪","Get stronger"],["fat","🔥","Lose fat"],["car","🏃","Better stamina","Cardio and endurance"],["hlt","🌿","Feel healthier","A bit of everything"]]},
+{k:"goal",q:"What's your main goal?",o:[["lean","✨","Build lean muscle","Toned, not bulky"],["str","💪","Get stronger"],["fat","🔥","Lose fat"],["car","🏃","Better stamina","Cardio and endurance"],["hlt","🌿","Feel healthier","A bit of everything"]]},
 {k:"exp",q:"How much have you worked out before?",o:[["new","🌱","New to it"],["some","🔁","On and off"],["reg","⚡","Regularly"]]},
 {k:"days",q:"How many days a week can you go?",o:[["2","","2 days"],["3","","3 days"],["4","","4 days"],["5","","5 days"]]},
 {k:"mins",q:"How long per workout?",o:[["30","","About 30 min"],["45","","About 45 min"],["60","","About an hour"]]},
@@ -888,10 +888,10 @@ var FM={sq:["Quads","Glutes"],hg:["Hamstrings","Glutes"],ps:["Chest","Shoulders"
 var FG=["Chest","Back","Shoulders","Arms","Quads","Hamstrings","Glutes","Core","Calves"];
 var FPL={FA:"sq ps pl co hg oh rw lu lp ca c2 ar",FB:"hg oh rw lu co sq ps pl lp ca c2 ar",FC:"lu ps rw lp c2 sq hg pl oh ca co ar",UP:"ps pl oh rw ar co c2",LO:"sq hg lu lp ca co c2"};
 var FW={FA:["Full body A",["sq","ps","pl","co","c2"]],FB:["Full body B",["hg","oh","rw","lu","co"]],FC:["Full body C",["lu","ps","rw","lp","c2"]],UP:["Upper body",["ps","pl","oh","rw","ar"]],LO:["Lower body",["sq","hg","lu","lp","co"]],CA:["Cardio",null]};
-var FS={str:{2:"FA FB",3:"FA FB FC",4:"UP LO UP LO",5:"UP LO CA UP LO"},fat:{2:"FA FB",3:"FA CA FB",4:"FA CA FB CA",5:"UP CA LO CA FA"},car:{2:"CA FA",3:"CA FA CA",4:"CA FA CA FB",5:"CA FA CA FB CA"},hlt:{2:"FA FB",3:"FA CA FB",4:"FA CA FB CA",5:"FA CA FB CA FC"}};
+var FS={lean:{2:"FA FB",3:"FA FB FC",4:"FA FB CA FC",5:"UP LO CA UP LO"},str:{2:"FA FB",3:"FA FB FC",4:"UP LO UP LO",5:"UP LO CA UP LO"},fat:{2:"FA FB",3:"FA CA FB",4:"FA CA FB CA",5:"UP CA LO CA FA"},car:{2:"CA FA",3:"CA FA CA",4:"CA FA CA FB",5:"CA FA CA FB CA"},hlt:{2:"FA FB",3:"FA CA FB",4:"FA CA FB CA",5:"FA CA FB CA FC"}};
 var FD={2:["Mon","Thu"],3:["Mon","Wed","Fri"],4:["Mon","Tue","Thu","Fri"],5:["Mon","Tue","Wed","Fri","Sat"]};
 function fPlan(A){var ids=FS[A.goal][A.days].split(" "),m=+A.mins,easy=A.easy||[],home=A.where==="home";
-var sets=A.exp==="new"?"2 × 10–12":A.exp==="some"?"3 × 8–12":A.goal==="str"?"4 × 6–8":"3 × 10–12",n=m<=30?3:m<=45?4:5,cov={};
+var sets=A.goal==="lean"?(A.exp==="new"?"2 × 12–15":"3 × 10–15"):A.exp==="new"?"2 × 10–12":A.exp==="some"?"3 × 8–12":A.goal==="str"?"4 × 6–8":"3 × 10–12",n=m<=30?3:m<=45?4:5,cov={};
 var nm=function(k){var f=FX[k],v=(easy.indexOf(f[2])>=0&&f[1])?f[1]:f[0];return home?v[1]:v[0]};
 var amt=function(k,q){return k==="co"||k==="c2"?(A.exp==="new"?"2 × 20–30 sec":"3 × 30–45 sec"):q?"2 × 12–15":k==="ca"?"3 × 12–15":sets};
 var days=ids.map(function(id,i){var W=FW[id];if(!W[1])return {id:id,i:i};var pool=FPL[id].split(" "),pk=[];
@@ -904,13 +904,14 @@ return days.map(function(D){var W=FW[D.id],i=D.i,x;
  var all=D.pk.concat(D.q),mu=FG.filter(function(g){return all.some(function(k){return FM[k].indexOf(g)>=0})});
  x=[["Warm-up","5 min easy cardio"]].concat(all.map(function(k){return [nm(k),amt(k,D.q.indexOf(k)>=0),FM[k].join(", ")]}));
  if(A.goal==="fat"&&m>=45)x.push([home?"Brisk walk":"Incline walk","10 min to finish"]);
- return {d:FD[A.days][i],t:W[0],mu:mu.join(" · "),s:all.length+" exercises · rest "+(A.sex==="f"?"60–75 sec":A.sex==="m"&&A.goal==="str"?"90 sec–2 min":"60–90 sec"),x:x}})}
+ return {d:FD[A.days][i],t:W[0],mu:mu.join(" · "),s:all.length+" exercises · rest "+(A.goal==="lean"?"about 60 sec":A.sex==="f"?"60–75 sec":A.sex==="m"&&A.goal==="str"?"90 sec–2 min":"60–90 sec"),x:x}})}
 function fAmt(t){var m=/^(\d+) × (.+?)( sec)?$/.exec(t||"");if(!m)return esc(t);return '<b>'+m[1]+' sets</b><small>'+(m[3]?'hold '+m[2]+' sec':m[2]+' reps each')+'</small>'}
 function fCov(P){var t=P.map(function(w){return w.mu}).join(" · ");return FG.filter(function(g){return t.indexOf(g)<0})}
 function fWeek(){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10)}
-var FL={goal:{str:"Strength",fat:"Fat loss",car:"Stamina",hlt:"Overall health"},where:{gym:"Gym",home:"Home",both:"Gym + home"}};
+var FL={goal:{lean:"Lean muscle",str:"Strength",fat:"Fat loss",car:"Stamina",hlt:"Overall health"},where:{gym:"Gym",home:"Home",both:"Gym + home"}};
 function fShow(){var A=S.fit;if(!A){fStart();return}$("fq").hidden=true;var P=fPlan(A),wk=fWeek(),dn=(S.fitDone||{})[wk]||[],c=dn.length;
 var tips=['<b>Check before you start.</b> Steady cardio usually brings numbers down. Heavy lifting or sprints can push them up.','<b>Pack fast carbs.</b> If you go low, stop and treat it.','<b>Lows can come hours later,</b> even overnight. Check before bed on workout days.'];
+if(A.goal==="lean"||A.goal==="str")tips.push('<b>Keep it growing.</b> When the last set feels easy, add a little weight or a few reps.');
 if(A.sex==="f")tips.push('<b>Your cycle can shift your numbers.</b> Many people run higher in the days before a period, then lower once it starts. Tag readings to spot your pattern.');
 if(A.when==="am")tips.push('<b>Mornings</b> often run a little higher during and after a workout.');
 if(A.when==="pm")tips.push('<b>Evening workouts</b> raise the chance of a low overnight.');
