@@ -121,7 +121,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 .wo{background:var(--card);border-radius:20px;padding:0;margin-bottom:10px;border:0;box-shadow:none}
 .wo>summary{padding:14px 16px;gap:12px;justify-content:flex-start}.wo>summary::after{margin-left:auto}
 .wo .dy{font:800 .78rem "DM Sans",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);width:2.6rem;flex:none}
-.wo .tt{display:flex;flex-direction:column;line-height:1.25}.wo .tt .mu{font-size:.82rem;color:var(--acc);font-weight:700;margin:1px 0}.ex .em{display:block;font-size:.78rem;color:var(--mute)}.fcov{margin:10px 0 0;font-size:.85rem;opacity:.9}.wo .tt small{font-weight:400;color:var(--mute);font-size:.8rem}
+.wo .tt{display:flex;flex-direction:column;line-height:1.25}.wo .tt .mu{font-size:.82rem;color:var(--acc);font-weight:700;margin:1px 0}.ex .em{display:block;font-size:.78rem;color:var(--mute)}.ex>span{text-align:right}.ex>span b{display:block;color:var(--ink);font-weight:700}.ex>span small{display:block;font-size:.78rem}.fcov{margin:10px 0 0;font-size:.85rem;opacity:.9}.wo .tt small{font-weight:400;color:var(--mute);font-size:.8rem}
 .wo.dn .tt{opacity:.55}.wo.dn .dy:after{content:" ✓"}
 .wo .bd{padding:0 16px 14px}
 .ex{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.92rem}.ex span{color:var(--mute);white-space:nowrap}
@@ -288,7 +288,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 d</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 e</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -905,6 +905,7 @@ return days.map(function(D){var W=FW[D.id],i=D.i,x;
  x=[["Warm-up","5 min easy cardio"]].concat(all.map(function(k){return [nm(k),amt(k,D.q.indexOf(k)>=0),FM[k].join(", ")]}));
  if(A.goal==="fat"&&m>=45)x.push([home?"Brisk walk":"Incline walk","10 min to finish"]);
  return {d:FD[A.days][i],t:W[0],mu:mu.join(" · "),s:all.length+" exercises · rest "+(A.sex==="f"?"60–75 sec":A.sex==="m"&&A.goal==="str"?"90 sec–2 min":"60–90 sec"),x:x}})}
+function fAmt(t){var m=/^(\d+) × (.+?)( sec)?$/.exec(t||"");if(!m)return esc(t);return '<b>'+m[1]+' sets</b><small>'+(m[3]?'hold '+m[2]+' sec':m[2]+' reps each')+'</small>'}
 function fCov(P){var t=P.map(function(w){return w.mu}).join(" · ");return FG.filter(function(g){return t.indexOf(g)<0})}
 function fWeek(){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10)}
 var FL={goal:{str:"Strength",fat:"Fat loss",car:"Stamina",hlt:"Overall health"},where:{gym:"Gym",home:"Home",both:"Gym + home"}};
@@ -914,8 +915,8 @@ if(A.sex==="f")tips.push('<b>Your cycle can shift your numbers.</b> Many people 
 if(A.when==="am")tips.push('<b>Mornings</b> often run a little higher during and after a workout.');
 if(A.when==="pm")tips.push('<b>Evening workouts</b> raise the chance of a low overnight.');
 tips.push('Ask your care team how to adjust insulin or snacks for exercise.');
-$("fp").innerHTML='<div class="fhero"><h2>Your '+A.days+'-day plan</h2><p class="note">A starting point. Stop if anything hurts.</p><div class="fchips"><span>'+FL.goal[A.goal]+'</span><span>'+A.mins+' min</span><span>'+FL.where[A.where]+'</span>'+((A.easy||[]).filter(function(x){return x!=="none"}).length?'<span>Easy on '+A.easy.filter(function(x){return x!=="none"}).map(function(x){return {knee:"knees",back:"back",shld:"shoulders"}[x]}).join(", ")+'</span>':'')+'</div>'+(function(mi){return '<p class="fcov">'+(mi.length?'Not covered this week: '+mi.join(", "):'✓ Every muscle group, every week')+'</p>'})(fCov(P))+'<div class="fweek"><span>This week</span><span><b>'+c+'</b> of '+P.length+' done</span></div><div class="bar" style="background:rgba(255,255,255,.15);height:8px;border-radius:99px;margin:6px 0 0"><i style="background:var(--in);width:'+Math.round(c/P.length*100)+'%"></i></div></div>'+
-P.map(function(w,i){var d=dn.indexOf(i)>=0;return '<details class="wo'+(d?' dn':'')+'"><summary><span class="dy">'+w.d+'</span><span class="tt">'+w.t+'<b class="mu">'+w.mu+'</b><small>'+w.s+'</small></span></summary><div class="bd">'+w.x.map(function(e){return '<div class="ex"><div>'+esc(e[0])+(e[2]?'<small class="em">'+esc(e[2])+'</small>':'')+'</div><span>'+esc(e[1])+'</span></div>'}).join("")+'<p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button data-fd="'+i+'"'+(d?' class="sec"':'')+'>'+(d?'Undo done':'Mark done')+'</button><button class="sec" data-fl="1">Log a reading</button></p></div></details>'}).join("")+
+$("fp").innerHTML='<div class="fhero"><h2>Your '+A.days+'-day plan</h2><p class="note">A starting point. Stop if anything hurts.</p><p class="note" style="margin-top:4px">2 sets of 10 reps = do the move 10 times, rest, then 10 more.</p><div class="fchips"><span>'+FL.goal[A.goal]+'</span><span>'+A.mins+' min</span><span>'+FL.where[A.where]+'</span>'+((A.easy||[]).filter(function(x){return x!=="none"}).length?'<span>Easy on '+A.easy.filter(function(x){return x!=="none"}).map(function(x){return {knee:"knees",back:"back",shld:"shoulders"}[x]}).join(", ")+'</span>':'')+'</div>'+(function(mi){return '<p class="fcov">'+(mi.length?'Not covered this week: '+mi.join(", "):'✓ Every muscle group, every week')+'</p>'})(fCov(P))+'<div class="fweek"><span>This week</span><span><b>'+c+'</b> of '+P.length+' done</span></div><div class="bar" style="background:rgba(255,255,255,.15);height:8px;border-radius:99px;margin:6px 0 0"><i style="background:var(--in);width:'+Math.round(c/P.length*100)+'%"></i></div></div>'+
+P.map(function(w,i){var d=dn.indexOf(i)>=0;return '<details class="wo'+(d?' dn':'')+'"><summary><span class="dy">'+w.d+'</span><span class="tt">'+w.t+'<b class="mu">'+w.mu+'</b><small>'+w.s+'</small></span></summary><div class="bd">'+w.x.map(function(e){return '<div class="ex"><div>'+esc(e[0])+(e[2]?'<small class="em">'+esc(e[2])+'</small>':'')+'</div><span>'+fAmt(e[1])+'</span></div>'}).join("")+'<p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button data-fd="'+i+'"'+(d?' class="sec"':'')+'>'+(d?'Undo done':'Mark done')+'</button><button class="sec" data-fl="1">Log a reading</button></p></div></details>'}).join("")+
 '<section><h2>Exercise with type 1</h2><ul class="ftips">'+tips.map(function(t){return '<li>'+t+'</li>'}).join("")+'</ul></section><p style="text-align:center"><button class="sec" id="fre">Retake the questions</button></p>';
 $("fp").hidden=false;
 [].forEach.call($("fp").querySelectorAll("[data-fd]"),function(b){b.onclick=function(){var i=+b.dataset.fd;S.fitDone=S.fitDone||{};var L=S.fitDone[wk]||[],j=L.indexOf(i);if(j<0)L.push(i);else L.splice(j,1);S.fitDone={};S.fitDone[wk]=L;save();fShow()}});
