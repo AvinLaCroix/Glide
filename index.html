@@ -121,7 +121,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 .wo{background:var(--card);border-radius:20px;padding:0;margin-bottom:10px;border:0;box-shadow:none}
 .wo>summary{padding:14px 16px;gap:12px;justify-content:flex-start}.wo>summary::after{margin-left:auto}
 .wo .dy{font:800 .78rem "DM Sans",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);width:2.6rem;flex:none}
-.wo .tt{display:flex;flex-direction:column;line-height:1.25}.wo .tt small{font-weight:400;color:var(--mute);font-size:.8rem}
+.wo .tt{display:flex;flex-direction:column;line-height:1.25}.wo .tt .mu{font-size:.82rem;color:var(--acc);font-weight:700;margin:1px 0}.ex .em{display:block;font-size:.78rem;color:var(--mute)}.fcov{margin:10px 0 0;font-size:.85rem;opacity:.9}.wo .tt small{font-weight:400;color:var(--mute);font-size:.8rem}
 .wo.dn .tt{opacity:.55}.wo.dn .dy:after{content:" ✓"}
 .wo .bd{padding:0 16px 14px}
 .ex{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.92rem}.ex span{color:var(--mute);white-space:nowrap}
@@ -288,7 +288,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 c</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 d</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -882,17 +882,30 @@ lu:[["Reverse lunge","Reverse lunge"],["Low step-up","Low step-up"],"knee"],
 lp:[["Leg press","Wall sit"],["Hamstring curl machine","Glute bridge march"],"knee"],
 co:[["Plank","Plank"],["Dead bug","Dead bug"],"back"],
 c2:[["Side plank","Side plank"],["Bird dog","Bird dog"],"back"],
-ar:[["Curl and triceps pushdown","Backpack curl and chair dip"],["Curl and triceps pushdown","Backpack curl"],"shld"]};
+ar:[["Curl and triceps pushdown","Backpack curl and chair dip"],["Curl and triceps pushdown","Backpack curl"],"shld"],
+ca:[["Standing calf raise (dumbbells)","Calf raise on a step"],["Seated calf raise","Calf raise on flat floor"],"knee"]};
+var FM={sq:["Quads","Glutes"],hg:["Hamstrings","Glutes"],ps:["Chest","Shoulders","Arms"],pl:["Back","Arms"],oh:["Shoulders","Arms"],rw:["Back","Arms"],lu:["Quads","Glutes"],lp:["Quads","Glutes"],co:["Core"],c2:["Core"],ar:["Arms"],ca:["Calves"]};
+var FG=["Chest","Back","Shoulders","Arms","Quads","Hamstrings","Glutes","Core","Calves"];
+var FPL={FA:"sq ps pl co hg oh rw lu lp ca c2 ar",FB:"hg oh rw lu co sq ps pl lp ca c2 ar",FC:"lu ps rw lp c2 sq hg pl oh ca co ar",UP:"ps pl oh rw ar co c2",LO:"sq hg lu lp ca co c2"};
 var FW={FA:["Full body A",["sq","ps","pl","co","c2"]],FB:["Full body B",["hg","oh","rw","lu","co"]],FC:["Full body C",["lu","ps","rw","lp","c2"]],UP:["Upper body",["ps","pl","oh","rw","ar"]],LO:["Lower body",["sq","hg","lu","lp","co"]],CA:["Cardio",null]};
 var FS={str:{2:"FA FB",3:"FA FB FC",4:"UP LO UP LO",5:"UP LO CA UP LO"},fat:{2:"FA FB",3:"FA CA FB",4:"FA CA FB CA",5:"UP CA LO CA FA"},car:{2:"CA FA",3:"CA FA CA",4:"CA FA CA FB",5:"CA FA CA FB CA"},hlt:{2:"FA FB",3:"FA CA FB",4:"FA CA FB CA",5:"FA CA FB CA FC"}};
 var FD={2:["Mon","Thu"],3:["Mon","Wed","Fri"],4:["Mon","Tue","Thu","Fri"],5:["Mon","Tue","Wed","Fri","Sat"]};
 function fPlan(A){var ids=FS[A.goal][A.days].split(" "),m=+A.mins,easy=A.easy||[],home=A.where==="home";
-var sets=A.exp==="new"?"2 × 10–12":A.exp==="some"?"3 × 8–12":A.goal==="str"?"4 × 6–8":"3 × 10–12",n=m<=30?3:m<=45?4:5;
-return ids.map(function(id,i){var W=FW[id],x;
- if(!W[1]){var cm=m-5;x=[["Warm-up walk","5 min"],[A.where==="home"?"Brisk walk or easy jog outside":"Bike, elliptical or incline walk",cm+" min"],[A.exp==="new"?"Easy pace — you can still talk":"Every 4 min: 3 min steady, 1 min hard",""]];return {d:FD[A.days][i],t:W[0],s:m+" min · keep it steady",x:x}}
- x=[["Warm-up","5 min easy cardio"]].concat(W[1].slice(0,n).map(function(k){var f=FX[k],v=(easy.indexOf(f[2])>=0&&f[1])?f[1]:f[0];return [home?v[1]:v[0],k==="co"||k==="c2"?(A.exp==="new"?"2 × 20–30 sec":"3 × 30–45 sec"):sets]}));
+var sets=A.exp==="new"?"2 × 10–12":A.exp==="some"?"3 × 8–12":A.goal==="str"?"4 × 6–8":"3 × 10–12",n=m<=30?3:m<=45?4:5,cov={};
+var nm=function(k){var f=FX[k],v=(easy.indexOf(f[2])>=0&&f[1])?f[1]:f[0];return home?v[1]:v[0]};
+var amt=function(k,q){return k==="co"||k==="c2"?(A.exp==="new"?"2 × 20–30 sec":"3 × 30–45 sec"):q?"2 × 12–15":k==="ca"?"3 × 12–15":sets};
+var days=ids.map(function(id,i){var W=FW[id];if(!W[1])return {id:id,i:i};var pool=FPL[id].split(" "),pk=[];
+ while(pk.length<n){var best=null,bs=-1;pool.forEach(function(k){if(pk.indexOf(k)>=0)return;var sc=FM[k].filter(function(g){return !cov[g]}).length*10-(pk.some(function(q){return FM[q].join()===FM[k].join()})?5:0);if(sc>bs){bs=sc;best=k}});if(!best)break;pk.push(best);FM[best].forEach(function(g){cov[g]=1})}
+ return {id:id,i:i,pk:pk,q:[]}});
+FG.forEach(function(g){if(cov[g])return;var c=days.filter(function(d){return d.pk&&FPL[d.id].split(" ").some(function(k){return FM[k].indexOf(g)>=0})}).sort(function(a,b){return a.pk.length+a.q.length-b.pk.length-b.q.length})[0];
+ if(!c)return;var k=FPL[c.id].split(" ").filter(function(k){return FM[k].indexOf(g)>=0&&c.pk.indexOf(k)<0&&c.q.indexOf(k)<0})[0];if(!k)return;c.q.push(k);FM[k].forEach(function(x){cov[x]=1})});
+return days.map(function(D){var W=FW[D.id],i=D.i,x;
+ if(!W[1]){var cm=m-5;x=[["Warm-up walk","5 min"],[home?"Brisk walk or easy jog outside":"Bike, elliptical or incline walk",cm+" min"],[A.exp==="new"?"Easy pace — you can still talk":"Every 4 min: 3 min steady, 1 min hard",""]];return {d:FD[A.days][i],t:W[0],mu:"Heart and lungs",s:m+" min · keep it steady",x:x}}
+ var all=D.pk.concat(D.q),mu=FG.filter(function(g){return all.some(function(k){return FM[k].indexOf(g)>=0})});
+ x=[["Warm-up","5 min easy cardio"]].concat(all.map(function(k){return [nm(k),amt(k,D.q.indexOf(k)>=0),FM[k].join(", ")]}));
  if(A.goal==="fat"&&m>=45)x.push([home?"Brisk walk":"Incline walk","10 min to finish"]);
- return {d:FD[A.days][i],t:W[0],s:(n)+" exercises · rest "+(A.sex==="f"?"60–75 sec":A.sex==="m"&&A.goal==="str"?"90 sec–2 min":"60–90 sec"),x:x}})}
+ return {d:FD[A.days][i],t:W[0],mu:mu.join(" · "),s:all.length+" exercises · rest "+(A.sex==="f"?"60–75 sec":A.sex==="m"&&A.goal==="str"?"90 sec–2 min":"60–90 sec"),x:x}})}
+function fCov(P){var t=P.map(function(w){return w.mu}).join(" · ");return FG.filter(function(g){return t.indexOf(g)<0})}
 function fWeek(){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10)}
 var FL={goal:{str:"Strength",fat:"Fat loss",car:"Stamina",hlt:"Overall health"},where:{gym:"Gym",home:"Home",both:"Gym + home"}};
 function fShow(){var A=S.fit;if(!A){fStart();return}$("fq").hidden=true;var P=fPlan(A),wk=fWeek(),dn=(S.fitDone||{})[wk]||[],c=dn.length;
@@ -901,8 +914,8 @@ if(A.sex==="f")tips.push('<b>Your cycle can shift your numbers.</b> Many people 
 if(A.when==="am")tips.push('<b>Mornings</b> often run a little higher during and after a workout.');
 if(A.when==="pm")tips.push('<b>Evening workouts</b> raise the chance of a low overnight.');
 tips.push('Ask your care team how to adjust insulin or snacks for exercise.');
-$("fp").innerHTML='<div class="fhero"><h2>Your '+A.days+'-day plan</h2><p class="note">A starting point. Stop if anything hurts.</p><div class="fchips"><span>'+FL.goal[A.goal]+'</span><span>'+A.mins+' min</span><span>'+FL.where[A.where]+'</span>'+((A.easy||[]).filter(function(x){return x!=="none"}).length?'<span>Easy on '+A.easy.filter(function(x){return x!=="none"}).map(function(x){return {knee:"knees",back:"back",shld:"shoulders"}[x]}).join(", ")+'</span>':'')+'</div><div class="fweek"><span>This week</span><span><b>'+c+'</b> of '+P.length+' done</span></div><div class="bar" style="background:rgba(255,255,255,.15);height:8px;border-radius:99px;margin:6px 0 0"><i style="background:var(--in);width:'+Math.round(c/P.length*100)+'%"></i></div></div>'+
-P.map(function(w,i){var d=dn.indexOf(i)>=0;return '<details class="wo'+(d?' dn':'')+'"><summary><span class="dy">'+w.d+'</span><span class="tt">'+w.t+'<small>'+w.s+'</small></span></summary><div class="bd">'+w.x.map(function(e){return '<div class="ex">'+esc(e[0])+'<span>'+esc(e[1])+'</span></div>'}).join("")+'<p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button data-fd="'+i+'"'+(d?' class="sec"':'')+'>'+(d?'Undo done':'Mark done')+'</button><button class="sec" data-fl="1">Log a reading</button></p></div></details>'}).join("")+
+$("fp").innerHTML='<div class="fhero"><h2>Your '+A.days+'-day plan</h2><p class="note">A starting point. Stop if anything hurts.</p><div class="fchips"><span>'+FL.goal[A.goal]+'</span><span>'+A.mins+' min</span><span>'+FL.where[A.where]+'</span>'+((A.easy||[]).filter(function(x){return x!=="none"}).length?'<span>Easy on '+A.easy.filter(function(x){return x!=="none"}).map(function(x){return {knee:"knees",back:"back",shld:"shoulders"}[x]}).join(", ")+'</span>':'')+'</div>'+(function(mi){return '<p class="fcov">'+(mi.length?'Not covered this week: '+mi.join(", "):'✓ Every muscle group, every week')+'</p>'})(fCov(P))+'<div class="fweek"><span>This week</span><span><b>'+c+'</b> of '+P.length+' done</span></div><div class="bar" style="background:rgba(255,255,255,.15);height:8px;border-radius:99px;margin:6px 0 0"><i style="background:var(--in);width:'+Math.round(c/P.length*100)+'%"></i></div></div>'+
+P.map(function(w,i){var d=dn.indexOf(i)>=0;return '<details class="wo'+(d?' dn':'')+'"><summary><span class="dy">'+w.d+'</span><span class="tt">'+w.t+'<b class="mu">'+w.mu+'</b><small>'+w.s+'</small></span></summary><div class="bd">'+w.x.map(function(e){return '<div class="ex"><div>'+esc(e[0])+(e[2]?'<small class="em">'+esc(e[2])+'</small>':'')+'</div><span>'+esc(e[1])+'</span></div>'}).join("")+'<p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button data-fd="'+i+'"'+(d?' class="sec"':'')+'>'+(d?'Undo done':'Mark done')+'</button><button class="sec" data-fl="1">Log a reading</button></p></div></details>'}).join("")+
 '<section><h2>Exercise with type 1</h2><ul class="ftips">'+tips.map(function(t){return '<li>'+t+'</li>'}).join("")+'</ul></section><p style="text-align:center"><button class="sec" id="fre">Retake the questions</button></p>';
 $("fp").hidden=false;
 [].forEach.call($("fp").querySelectorAll("[data-fd]"),function(b){b.onclick=function(){var i=+b.dataset.fd;S.fitDone=S.fitDone||{};var L=S.fitDone[wk]||[],j=L.indexOf(i);if(j<0)L.push(i);else L.splice(j,1);S.fitDone={};S.fitDone[wk]=L;save();fShow()}});
