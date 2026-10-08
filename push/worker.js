@@ -24,7 +24,7 @@ export default {
           sub: b.sub,
           tz: String(b.tz || "America/Chicago").slice(0, 64),
           items: (Array.isArray(b.items) ? b.items : []).slice(0, 40).map(i => ({ t: String(i.t).slice(0, 5), ti: String(i.ti || "Glide").slice(0, 60), b: String(i.b || "").slice(0, 160) })),
-          ns: b.ns && b.ns.u ? { u: String(b.ns.u).slice(0, 200), k: String(b.ns.k || "").slice(0, 100), lo: +b.ns.lo || 70, hi: +b.ns.hi || 180, goal: +b.ns.goal || 70, at: String(b.ns.at || "20:00").slice(0, 5) } : null,
+          ns: b.ns && b.ns.u ? { u: String(b.ns.u).slice(0, 200), k: String(b.ns.k || "").slice(0, 100), lo: +b.ns.lo || 70, hi: +b.ns.hi || 180, goal: +b.ns.goal || 70, at: String(b.ns.at || "20:00").slice(0, 5), sk: Math.max(0, Math.min(9999, +b.ns.sk || 0)), skd: String(b.ns.skd || "").slice(0, 10) } : null,
           up: Date.now()
         };
         await env.SUBS.put("subs", JSON.stringify(all));
@@ -89,7 +89,10 @@ async function tirMessage(ns, tz) {
   const inR = a.filter(e => e.sgv >= ns.lo && e.sgv <= ns.hi).length;
   const pct = Math.round(inR / a.length * 100);
   if (pct >= ns.goal) return null;
-  return { title: "Glide: streak check", body: "You're at " + pct + "% in range today, under your " + ns.goal + "% goal. There's still time this evening." };
+  const y = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(now - 864e5));
+  const sk = ns.skd === y ? ns.sk : 0;
+  if (sk > 0) return { title: "Glide: your " + sk + "-day streak is at risk", body: "You're at " + pct + "% in range today, under your " + ns.goal + "% goal. Bring it up tonight to keep your streak going." };
+  return { title: "Glide: time in range check", body: "You're at " + pct + "% in range today, under your " + ns.goal + "% goal. There's still time this evening." };
 }
 
 // ---------- storage ----------

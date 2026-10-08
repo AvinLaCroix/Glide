@@ -267,7 +267,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <input id="imp" type="file" accept=".csv,text/csv"><p class="note" id="impmsg"></p></details>
 <h3 class="grp">Settings</h3>
 <details aria-label="Phone notifications" id="pushsec"><summary><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Phone notifications</span></summary>
-<p class="note">Your check reminders, pre-bolus reminders and an 8 PM time-in-range check, sent to your phone even when Glide is closed.</p>
+<p class="note">Your check reminders, pre-bolus reminders, and an 8 PM heads-up when your streak is at risk, sent to your phone even when Glide is closed. The streak alert needs Live Dexcom connected.</p>
 <p id="pushst" style="font-weight:600"></p>
 <p><button id="pon">Turn on</button> <button class="sec" id="ptest" hidden>Send a test</button> <button class="sec" id="poff" hidden>Turn off</button></p>
 <p class="note">Keep using your Dexcom alarms for lows and highs. They're more reliable for that.</p></details>
@@ -296,7 +296,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 p</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 q</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -881,7 +881,9 @@ function pushOk(){return "serviceWorker" in navigator&&"PushManager" in window&&
 function hm(m){m=(m+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%60)}
 function pushItems(){var o=S.rem.map(function(m){return {t:m.t,ti:"Glide: "+m.l,b:"Time to check your blood sugar."}}),c=pbc();
 if(c.on)PBM.forEach(function(x){o.push({t:hm(mins(S.mt[x[0]])-c.lead),ti:"Glide: pre-bolus",b:"Pre-bolus for "+x[1]+" at "+f12(S.mt[x[0]])+", if that is part of your plan."})});return o}
-function pushBody(sub){var d=S.ds;return {id:S.push.id,sub:sub.toJSON?sub.toJSON():sub,tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||"America/Chicago"),items:pushItems(),ns:d&&d.u?{u:nsBase(d.u),k:d.k||"",lo:S.lo,hi:S.hi,goal:S.goal||70,at:"20:00"}:null}}
+function pushBody(sub){var d=S.ds;return {id:S.push.id,sub:sub.toJSON?sub.toJSON():sub,tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||"America/Chicago"),items:pushItems(),ns:d&&d.u?{u:nsBase(d.u),k:d.k||"",lo:S.lo,hi:S.hi,goal:S.goal||70,at:"20:00",sk:skPrev(),skd:dkeyY()}:null}}
+function dkeyY(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function skPrev(){var m=dayStats(),g=S.goal||70,d=new Date(),n=0;d.setDate(d.getDate()-1);for(var i=0;i<400;i++){var o=m[dkey(d)];if(o&&o.n>=2&&o.i/o.n*100>=g){n++;d.setDate(d.getDate()-1)}else break}return n}
 function pushPost(path,body){return fetch(PUSH_URL+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error("server "+r.status);return r.json()})}
 function pushSub(){return navigator.serviceWorker.getRegistration().then(function(r){return r?r.pushManager.getSubscription():null})}
 function pushSync(force){if(!(S.push&&S.push.on)||!PUSH_URL||!pushOk())return;pushSub().then(function(sub){if(!sub){S.push.on=false;save();pushUi("Notifications got turned off on this phone. Tap Turn on again.");return}
