@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icons/icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Glide"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="theme-color" content="#0f1f1b"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Glide</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f1f1b'/%3E%3Crect x='12' y='38' width='76' height='26' rx='13' fill='%231f4a40'/%3E%3Cpolyline points='20,55 34,50 47,56 61,45 74,49' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='74' cy='49' r='6' fill='%233fc7a3' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
@@ -266,6 +266,11 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p class="note">Export your readings from Dexcom Clarity (Export, then pick dates) and choose the CSV file here. It is read on your device and never uploaded. Imported readings count toward your time in range but stay out of History.</p>
 <input id="imp" type="file" accept=".csv,text/csv"><p class="note" id="impmsg"></p></details>
 <h3 class="grp">Settings</h3>
+<details aria-label="Phone notifications" id="pushsec"><summary><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Phone notifications</span></summary>
+<p class="note">Your check reminders, pre-bolus reminders and an 8 PM time-in-range check, sent to your phone even when Glide is closed.</p>
+<p id="pushst" style="font-weight:600"></p>
+<p><button id="pon">Turn on</button> <button class="sec" id="ptest" hidden>Send a test</button> <button class="sec" id="poff" hidden>Turn off</button></p>
+<p class="note">Keep using your Dexcom alarms for lows and highs. They're more reliable for that.</p></details>
 <details aria-label="Reminders"><summary><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>Reminders</span></summary>
 <div class="mrow" style="grid-template-columns:1fr 8rem auto"><label>Label<input id="rl" placeholder="e.g. After dinner"></label><label>Time<input id="rt" type="time"></label><button id="ra">Add</button></div>
 <ul id="rl2"></ul>
@@ -291,7 +296,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 n</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 o</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -303,7 +308,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 (function(){
 var K="range_v1",S={r:[],meals:[],rem:[{t:"07:30",l:"Morning check"},{t:"11:45",l:"Before lunch"},{t:"21:30",l:"Bedtime check"}],u:"mgdl",mt:{b:"07:30",l:"12:00",d:"18:30",s:"22:30"},lo:70,hi:180,days:14,goal:70,ing:[],avoid:[],myp:{}};
 try{var x=localStorage.getItem(K);if(x)S=Object.assign(S,JSON.parse(x))}catch(e){}
-function save(){try{localStorage.setItem(K,JSON.stringify(S));return true}catch(e){return false}}
+function save(){try{localStorage.setItem(K,JSON.stringify(S));if(S.push&&S.push.on){clearTimeout(pushT);pushT=setTimeout(pushSync,2500)}return true}catch(e){return false}}
 var $=function(i){return document.getElementById(i)};
 function pad(n){return String(n).padStart(2,"0")}
 function nowStr(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())}
@@ -335,13 +340,13 @@ function pbRender(){var b=$("pbn");if(!b)return;var l=pbList(),c=pbc();if(!l.len
 b.className="alert";b.innerHTML="<b>Pre-bolus reminder:</b> "+l.map(function(x){return esc(x.n)+" at "+f12(x.t)}).join(", ")+" ("+c.lead+" minutes before). Dose now if that is part of your plan. Logging insulin clears this. <button class=\"sec\" id=\"pbd\" style=\"padding:2px 10px;margin-left:6px\">Dismiss</button>";
 $("pbd").onclick=function(){l.forEach(function(x){pbDis[new Date().toDateString()+x.k]=1});pbRender()}}
 function pbNotify(){var c=pbc();if(!c.on)return;var d=new Date(),nm=d.getHours()*60+d.getMinutes();
-PBM.forEach(function(x){var a=mins(S.mt[x[0]])-c.lead,key="pb"+d.toDateString()+x[0];if(a>=0&&a===nm&&!fired[key]){fired[key]=1;try{if(window.Notification&&Notification.permission==="granted")new Notification("Glide: pre-bolus",{body:"Time to pre-bolus for "+x[1]+" at "+f12(S.mt[x[0]])+", if that is part of your plan."})}catch(e){}}})}
+PBM.forEach(function(x){var a=mins(S.mt[x[0]])-c.lead,key="pb"+d.toDateString()+x[0];if(a>=0&&a===nm&&!fired[key]){fired[key]=1;try{if(!(S.push&&S.push.on)&&window.Notification&&Notification.permission==="granted")new Notification("Glide: pre-bolus",{body:"Time to pre-bolus for "+x[1]+" at "+f12(S.mt[x[0]])+", if that is part of your plan."})}catch(e){}}})}
 function pbIcs(){var c=pbc(),d=new Date(),p2=function(n){return (n<10?"0":"")+n},ds=d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate()),now=new Date(),st=now.getUTCFullYear()+p2(now.getUTCMonth()+1)+p2(now.getUTCDate())+"T"+p2(now.getUTCHours())+p2(now.getUTCMinutes())+"00Z",L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Glide//Pre-bolus//EN","CALSCALE:GREGORIAN"];
 PBM.forEach(function(x,i){var mt=mins(S.mt[x[0]]),a=mt-c.lead;if(a<0)return;var hm=function(m){return p2(Math.floor(m/60))+p2(m%60)+"00"};
 L.push("BEGIN:VEVENT","UID:range-pb-"+x[0]+"-"+ds+"@range.local","DTSTAMP:"+st,"DTSTART:"+ds+"T"+hm(a),"DTEND:"+ds+"T"+hm(Math.min(a+5,1439)),"RRULE:FREQ=DAILY","SUMMARY:Pre-bolus for "+x[1]+" in "+c.lead+" min","DESCRIPTION:Pre-bolus now if that is part of your plan. Meal at "+f12(S.mt[x[0]])+". From Glide.","BEGIN:VALARM","TRIGGER:PT0S","ACTION:DISPLAY","DESCRIPTION:Pre-bolus for "+x[1],"END:VALARM","END:VEVENT")});
 L.push("END:VCALENDAR");return L.join("\r\n")+"\r\n"}
 function tick(){nsUi();openStreak();if($("next"))$("next").innerHTML=nextHtml();var d=new Date(),k=pad(d.getHours())+":"+pad(d.getMinutes());
-remDue().forEach(function(x){var key=d.toDateString()+x.m.t;if(x.m.t===k&&!fired[key]){fired[key]=1;try{if(window.Notification&&Notification.permission==="granted")new Notification("Glide: "+x.m.l,{body:"Time to check your blood sugar."})}catch(e){}}});pbNotify();renderRem()}
+remDue().forEach(function(x){var key=d.toDateString()+x.m.t;if(x.m.t===k&&!fired[key]){fired[key]=1;try{if(!(S.push&&S.push.on)&&window.Notification&&Notification.permission==="granted")new Notification("Glide: "+x.m.l,{body:"Time to check your blood sugar."})}catch(e){}}});pbNotify();renderRem()}
 function splitCsv(l){var o=[],c="",q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++}else q=!q}else if(ch===","&&!q){o.push(c);c=""}else c+=ch}o.push(c);return o}
 function U(v){return S.u==="mmol"?(v/18.016).toFixed(1):String(Math.round(v))}
 function UL(){return S.u==="mmol"?"mmol/L":"mg/dL"}
@@ -871,6 +876,30 @@ var ok=save();render();
 msg.textContent=ok?"Imported "+add+" readings ("+fmt(mn)+" to "+fmt(mx2)+")"+(dup?", skipped "+dup+" already imported":"")+".":"Imported "+add+" readings, but this device couldn't store them all. Try a shorter date range."}catch(e){msg.textContent="Something went wrong reading that file."}};
 fr.readAsText(f);this.value=""};
 
+var PUSH_URL="";
+function pushOk(){return "serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window}
+function hm(m){m=(m+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%60)}
+function pushItems(){var o=S.rem.map(function(m){return {t:m.t,ti:"Glide: "+m.l,b:"Time to check your blood sugar."}}),c=pbc();
+if(c.on)PBM.forEach(function(x){o.push({t:hm(mins(S.mt[x[0]])-c.lead),ti:"Glide: pre-bolus",b:"Pre-bolus for "+x[1]+" at "+f12(S.mt[x[0]])+", if that is part of your plan."})});return o}
+function pushBody(sub){var d=S.ds;return {id:S.push.id,sub:sub.toJSON?sub.toJSON():sub,tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||"America/Chicago"),items:pushItems(),ns:d&&d.u?{u:nsBase(d.u),k:d.k||"",lo:S.lo,hi:S.hi,goal:S.goal||70,at:"20:00"}:null}}
+function pushPost(path,body){return fetch(PUSH_URL+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error("server "+r.status);return r.json()})}
+function pushSub(){return navigator.serviceWorker.getRegistration().then(function(r){return r?r.pushManager.getSubscription():null})}
+function pushSync(force){if(!(S.push&&S.push.on)||!PUSH_URL||!pushOk())return;pushSub().then(function(sub){if(!sub){S.push.on=false;save();pushUi("Notifications got turned off on this phone. Tap Turn on again.");return}
+var b=pushBody(sub),h=JSON.stringify(b),k="glide_push_h",old="";try{old=localStorage.getItem(k)||""}catch(e){}if(!force&&old===h)return;
+return pushPost("/sub",b).then(function(){try{localStorage.setItem(k,h)}catch(e){}})}).catch(function(){})}
+function pushUi(msg){var st=$("pushst"),on=S.push&&S.push.on;if(!st)return;$("pon").hidden=!!on;$("ptest").hidden=!on;$("poff").hidden=!on;
+st.textContent=msg||(on?"On. You'll get your reminders here even when Glide is closed.":!PUSH_URL?"Almost ready. The notification server isn't set up yet.":"Off.")}
+function rid(){var a=new Uint8Array(12),s="";crypto.getRandomValues(a);for(var i=0;i<a.length;i++)s+=("0"+a[i].toString(36)).slice(-2);return s}
+function unb64(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var b=atob(s),o=new Uint8Array(b.length);for(var i=0;i<b.length;i++)o[i]=b.charCodeAt(i);return o}
+$("pon").onclick=function(){if(!PUSH_URL){pushUi("Almost ready. The notification server isn't set up yet.");return}
+if(!pushOk()){pushUi(navigator.standalone?"This copy of Glide can't get notifications. Make a backup, remove Glide from your Home Screen, add it again from Safari, then restore.":"Open Glide from its Home Screen icon to turn these on. In Safari, tap Share, then Add to Home Screen.");return}
+pushUi("Asking your phone…");Notification.requestPermission().then(function(p){if(p!=="granted")throw new Error("denied");return navigator.serviceWorker.register("sw.js")}).then(function(){return navigator.serviceWorker.ready}).then(function(reg){
+return fetch(PUSH_URL+"/vapid").then(function(r){return r.json()}).then(function(v){return reg.pushManager.getSubscription().then(function(s){return s||reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:unb64(v.key)})})})}).then(function(sub){
+S.push={on:true,id:(S.push&&S.push.id)||rid()};save();return pushPost("/sub",pushBody(sub)).then(function(){try{localStorage.setItem("glide_push_h",JSON.stringify(pushBody(sub)))}catch(e){}pushUi()})}).catch(function(e){
+pushUi(e.message==="denied"?"Notifications are blocked. Turn them on in iPhone Settings, then Notifications, then Glide.":"Couldn't turn on notifications. Check your connection and try again.")})};
+$("ptest").onclick=function(){pushUi("Sending a test…");pushSync(true);pushPost("/test",{id:S.push.id}).then(function(r){pushUi(r.ok?"Test sent. It should pop up in a few seconds.":"The test didn't go through. Try Turn off, then Turn on.")}).catch(function(){pushUi("Couldn't reach the notification server.")})};
+$("poff").onclick=function(){var id=S.push&&S.push.id;S.push={on:false,id:id};save();pushUi("Off.");pushSub().then(function(s){if(s)s.unsubscribe()}).catch(function(){});if(PUSH_URL&&id)pushPost("/unsub",{id:id}).catch(function(){});try{localStorage.removeItem("glide_push_h")}catch(e){}};
+var pushT;
 function nsBase(u){u=String(u||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;return u.replace(/[?#].*$/,"").replace(/\/api\/v1.*$/i,"").replace(/\/+$/,"")}
 function nsArrow(d){return {DoubleUp:"⇈",SingleUp:"↑",FortyFiveUp:"↗",Flat:"→",FortyFiveDown:"↘",SingleDown:"↓",DoubleDown:"⇊"}[d]||""}
 function nsAgo(ts){var m=Math.max(0,Math.round((Date.now()-ts)/6e4));return m<1?"just now":m<60?m+"m ago":Math.round(m/60)+"h ago"}
@@ -890,6 +919,7 @@ $("nsc").onclick=function(){var u=nsBase($("nsu").value);if(!u){$("nsm").textCon
 $("nsd").onclick=function(){delete S.ds;delete S.live;save();$("nsu").value="";$("nsk").value="";$("nsm").textContent="Disconnected. Readings already added stay in your log.";nsUi();render()};
 setInterval(function(){if(document.visibilityState!=="hidden")nsSync()},60000);
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")nsSync()});
+pushUi();if(S.push&&S.push.on&&pushOk()){navigator.serviceWorker.register("sw.js").catch(function(){});setTimeout(pushSync,1500)}
 $("bk").onclick=function(){var d={app:"range",v:1,r:S.r.filter(function(r){return $("bcg").checked||r.s!=="cgm"}),meals:S.meals,rem:S.rem,mt:S.mt,lo:S.lo,hi:S.hi,u:S.u,days:S.days,goal:S.goal,ing:S.ing,avoid:S.avoid,myp:S.myp,pb:S.pb,os:S.os},t=JSON.stringify(d),ta=$("bt");ta.value=t;ta.focus();ta.select();
 var fb=function(){$("bm").textContent="Backup is in the box above. Select all and copy it into a notes app. It has "+d.r.length+" readings."};
 try{navigator.clipboard.writeText(t).then(function(){$("bm").textContent="Backup copied ("+d.r.length+" readings). Paste it into a notes app."},fb)}catch(e){fb()}};
