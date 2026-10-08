@@ -5,6 +5,7 @@
 
 const ORIGINS = ["https://avinlacroix.github.io"];
 const SUBJECT = "https://avinlacroix.github.io/Glide/";
+const OPTS = ["rem", "pb", "tir", "os", "stale", "recap", "pat", "fit", "meal", "groc"];
 
 export default {
   async fetch(req, env) {
@@ -16,46 +17,57 @@ export default {
         const v = await vapid(env);
         return json({ key: v.pub }, cors);
       }
-      if (req.method === "POST" && url.pathname === "/sub") {
-        const b = await req.json();
+      if (req.method !== "POST") return new Response("Glide push server is running.", { headers: cors });
+      const b = await req.json();
+      const all = await loadSubs(env);
+      const save = () => env.SUBS.put("subs", JSON.stringify(all));
+      if (url.pathname === "/sub") {
         if (!validId(b.id) || !b.sub || !b.sub.endpoint || !b.sub.keys) return json({ error: "bad request" }, cors, 400);
-        const all = await loadSubs(env);
         const prev = all[b.id] || {};
+        const opt = {};
+        OPTS.forEach(k => { opt[k] = !b.opt || b.opt[k] !== false; });
         all[b.id] = {
-          os: prev.os || null,
+          os: prev.os || null, later: prev.later || [], st: prev.st || null, gap: prev.gap || 0, patK: prev.patK || "",
           sub: b.sub,
           tz: String(b.tz || "America/Chicago").slice(0, 64),
-          items: (Array.isArray(b.items) ? b.items : []).slice(0, 40).map(i => ({ t: String(i.t).slice(0, 5), ti: String(i.ti || "Glide").slice(0, 60), b: String(i.b || "").slice(0, 160) })),
+          opt,
+          items: (Array.isArray(b.items) ? b.items : []).slice(0, 60).map(i => ({
+            t: String(i.t).slice(0, 5), ti: String(i.ti || "Glide").slice(0, 70), b: String(i.b || "").slice(0, 200),
+            dw: Array.isArray(i.dw) ? i.dw.filter(d => d >= 0 && d <= 6).slice(0, 7) : null
+          })),
           ns: b.ns && b.ns.u ? { u: String(b.ns.u).slice(0, 200), k: String(b.ns.k || "").slice(0, 100), lo: +b.ns.lo || 70, hi: +b.ns.hi || 180, goal: +b.ns.goal || 70, at: String(b.ns.at || "20:00").slice(0, 5), sk: Math.max(0, Math.min(9999, +b.ns.sk || 0)), skd: String(b.ns.skd || "").slice(0, 10) } : null,
           up: Date.now()
         };
-        await env.SUBS.put("subs", JSON.stringify(all));
+        await save();
         return json({ ok: true }, cors);
       }
-      if (req.method === "POST" && url.pathname === "/seen") {
-        const b = await req.json();
-        const all = await loadSubs(env);
-        if (!all[b.id]) return json({ error: "not signed up" }, cors, 404);
-        all[b.id].os = { d: String(b.d || "").slice(0, 10), n: Math.max(0, Math.min(99999, +b.n || 0)) };
-        await env.SUBS.put("subs", JSON.stringify(all));
+      const s = all[b.id];
+      if (url.pathname === "/unsub") { delete all[b.id]; await save(); return json({ ok: true }, cors); }
+      if (!s) return json({ error: "not signed up" }, cors, 404);
+      if (url.pathname === "/seen") {
+        s.os = { d: String(b.d || "").slice(0, 10), n: Math.max(0, Math.min(99999, +b.n || 0)) };
+        await save();
         return json({ ok: true }, cors);
       }
-      if (req.method === "POST" && url.pathname === "/unsub") {
-        const b = await req.json();
-        const all = await loadSubs(env);
-        delete all[b.id];
-        await env.SUBS.put("subs", JSON.stringify(all));
+      if (url.pathname === "/stats") {
+        const msg = m => m && m.ti ? { k: String(m.k || "").slice(0, 60), ti: String(m.ti).slice(0, 70), b: String(m.b || "").slice(0, 200) } : null;
+        s.st = { at: Date.now(), recap: msg(b.recap), pat: msg(b.pat) };
+        await save();
         return json({ ok: true }, cors);
       }
-      if (req.method === "POST" && url.pathname === "/test") {
-        const b = await req.json();
-        const all = await loadSubs(env);
-        const s = all[b.id];
-        if (!s) return json({ error: "not signed up" }, cors, 404);
+      if (url.pathname === "/later") {
+        const at = +b.at;
+        if (!(at > Date.now() && at < Date.now() + 864e5)) return json({ error: "bad time" }, cors, 400);
+        s.later = (s.later || []).filter(x => x.at > Date.now() - 36e5).slice(-10);
+        s.later.push({ at, ti: String(b.ti || "Glide").slice(0, 70), b: String(b.b || "").slice(0, 200) });
+        await save();
+        return json({ ok: true }, cors);
+      }
+      if (url.pathname === "/test") {
         const r = await sendPush(env, s.sub, { title: "Glide", body: "Notifications are working." });
         return json({ ok: r.ok, status: r.status }, cors);
       }
-      return new Response("Glide push server is running.", { headers: cors });
+      return json({ error: "unknown" }, cors, 404);
     } catch (e) {
       return json({ error: String(e && e.message || e) }, cors, 500);
     }
@@ -66,20 +78,64 @@ export default {
   }
 };
 
+function localParts(tz, ms) {
+  const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(ms));
+  const g = t => f.find(p => p.type === t).value;
+  return { hm: g("hour") + ":" + g("minute"), min: +g("minute"), dw: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(g("weekday")), day: g("year") + "-" + g("month") + "-" + g("day") };
+}
+
+async function latestReading(ns) {
+  const r = await fetch(ns.u.replace(/\/+$/, "") + "/api/v1/entries/sgv.json?count=1" + (ns.k ? "&token=" + encodeURIComponent(ns.k) : ""));
+  if (!r.ok) return null;
+  const a = await r.json();
+  return a && a[0] && a[0].sgv ? a[0] : null;
+}
+
 async function tick(env) {
   const all = await loadSubs(env);
   let changed = false;
+  const now = Date.now();
   for (const id of Object.keys(all)) {
-    const s = all[id];
-    const hm = localHM(s.tz);
-    const due = s.items.filter(i => i.t === hm).map(i => ({ title: i.ti, body: i.b }));
-    if (s.os && s.os.n > 0 && hm === "21:00") {
-      const day = ms => new Intl.DateTimeFormat("en-CA", { timeZone: s.tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ms));
-      if (s.os.d === day(Date.now() - 864e5)) due.push({ title: "Glide: keep your " + s.os.n + "-day streak 🩸", body: "You haven't opened Glide today. Open it before midnight to keep your streak." });
-    }
-    if (s.ns && s.ns.at === hm) {
+    const s = all[id], o = s.opt || {}, L = localParts(s.tz || "America/Chicago", now), hm = L.hm;
+    const on = k => o[k] !== false;
+    const due = s.items.filter(i => i.t === hm && (!i.dw || i.dw.indexOf(L.dw) >= 0)).map(i => ({ title: i.ti, body: i.b }));
+    // daily 🩸 streak
+    if (on("os") && s.os && s.os.n > 0 && hm === "21:00" && s.os.d === localParts(s.tz, now - 864e5).day)
+      due.push({ title: "Glide: keep your " + s.os.n + "-day streak 🩸", body: "You haven't opened Glide today. Open it before midnight to keep your streak." });
+    // 8 PM time in range
+    if (on("tir") && s.ns && s.ns.at === hm) {
       const m = await tirMessage(s.ns, s.tz).catch(() => null);
       if (m) due.push(m);
+    }
+    // live readings stopped (checked every 10 minutes)
+    if (on("stale") && s.ns && L.min % 10 === 0) {
+      const e = await latestReading(s.ns).catch(() => null);
+      const age = e ? (now - e.date) / 60000 : 999;
+      if (age > 30 && !s.gap) {
+        due.push({ title: "Glide: no new readings", body: e ? "Glide hasn't gotten a Dexcom reading in " + (age > 1440 ? "over a day" : age >= 90 ? Math.round(age / 60) + " hours" : Math.round(age) + " minutes") + ". Check your Dexcom app, then Nightscout." : "Glide can't reach your Nightscout site. Check your Dexcom app, then Nightscout." });
+        s.gap = now; changed = true;
+      } else if (age <= 30 && s.gap) { s.gap = 0; changed = true; }
+    }
+    // after-meal checks
+    if (s.later && s.later.length) {
+      const ready = s.later.filter(x => x.at <= now);
+      if (ready.length) {
+        s.later = s.later.filter(x => x.at > now); changed = true;
+        if (on("meal")) for (const x of ready) {
+          let body = x.b;
+          if (s.ns) {
+            const e = await latestReading(s.ns).catch(() => null);
+            if (e && now - e.date < 15 * 60000) body = "You're at " + e.sgv + " now (" + (e.sgv < s.ns.lo ? "low" : e.sgv > s.ns.hi ? "high" : "in range") + "). " + body;
+          }
+          due.push({ title: x.ti, body });
+        }
+      }
+    }
+    // Sunday recap and new patterns (worked out by Glide when you open it)
+    const fresh = s.st && now - s.st.at < 3 * 864e5;
+    if (on("recap") && fresh && s.st.recap && L.dw === 0 && hm === "18:00") due.push({ title: s.st.recap.ti, body: s.st.recap.b });
+    if (on("pat") && fresh && s.st.pat && s.st.pat.k && s.st.pat.k !== s.patK && hm === "19:00") {
+      due.push({ title: s.st.pat.ti, body: s.st.pat.b }); s.patK = s.st.pat.k; changed = true;
     }
     for (const msg of due) {
       const r = await sendPush(env, s.sub, msg);
