@@ -95,7 +95,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 .rbar .lo{background:var(--low);border-radius:7px 2px 2px 7px}.rbar .in{background:var(--in);border-radius:2px}.rbar .hi{background:var(--high);border-radius:2px 7px 7px 2px}
 .mk{position:absolute;top:-5px;width:6px;height:24px;margin-left:-3px;background:#fff;border-radius:3px;box-shadow:0 0 0 3px var(--hero)}
 .rleg{display:flex;justify-content:space-between;font-size:.78rem;color:#b9cbc5;margin-top:8px}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .tiles div{background:var(--card);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .tiles b{font:800 1.7rem/1.1 "Bricolage Grotesque",sans-serif;font-variant-numeric:tabular-nums}
 .tiles span{font-size:.82rem;color:var(--mute)}.tiles .tl{background:var(--tint)}
@@ -186,7 +186,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
  <div class="rbar"><i class="z lo" id="zlo"></i><i class="z in" id="zin"></i><i class="z hi" id="zhi"></i><span class="mk" id="mk" hidden></span></div>
  <div class="rleg"><span>Low</span><span id="rng"></span><span>High</span></div>
 </section>
-<div class="tiles"><div><b id="tir">–</b><span>in range</span></div><div><b id="avg">–</b><span>average</span></div><div class="tl"><b id="stk">0</b><span>days at goal</span></div></div>
+<div class="tiles"><div><b id="tir">–</b><span>in range</span></div><div><b id="avg">–</b><span>average</span></div><div class="tl"><b id="stk">0</b><span>days at goal</span></div><div><b id="a1c">–</b><span id="a1cl">est. A1C</span></div></div>
 <div class="chips pchips" id="chips"></div>
 <section aria-label="Today"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0">Today</h2><span class="note" id="dayn"></span></div><div id="day"></div></section>
 <section aria-label="Next meal" class="next" id="next"></section>
@@ -354,7 +354,7 @@ function sheetHtml(){var w=inWin(),n=w.length;if(!n)return '<p>No readings in th
 var c={low:0,in:0,high:0},sum=0;w.forEach(function(r){c[cls(r.v)]++;sum+=r.v});var p=function(k){return Math.round(c[k]/n*100)};
 var pk=[];w.filter(function(r){return r.v<S.lo}).sort(function(a,b){return new Date(b.t)-new Date(a.t)}).forEach(function(r){if(pk.length<8&&pk.every(function(q){return Math.abs(new Date(q.t)-new Date(r.t))>36e5}))pk.push(r)});
 return '<h3 style="margin:0 0 4px">Blood sugar summary</h3><p>'+fmt(w[0].t)+' to '+fmt(w[n-1].t)+' ('+S.days+' day window). Target range '+U(S.lo)+'–'+U(S.hi)+' '+UL()+'.</p>'
-+'<p><b>'+p("in")+'%</b> in range, '+p("low")+'% low, '+p("high")+'% high. Average <b>'+U(sum/n)+'</b> '+UL()+'. Estimated A1C <b>'+(n>=3?((sum/n+46.7)/28.7).toFixed(1)+'%':'n/a')+'</b>. '+n+' readings.</p>'
++'<p><b>'+p("in")+'%</b> in range, '+p("low")+'% low, '+p("high")+'% high. Average <b>'+U(sum/n)+'</b> '+UL()+'. Estimated A1C (GMI) <b>'+(function(g){return g&&g.days>=3?g.v.toFixed(1)+'%':'n/a'})(gmiOf(w))+'</b>. '+n+' readings.</p>'
 +'<h3 style="margin:10px 0 4px">By time of day</h3>'+(patHtml(w)||'<p>Not enough readings yet.</p>')
 +'<h3 style="margin:10px 0 4px">Recent lows</h3>'+(pk.length?'<ul>'+pk.map(function(r){return '<li><span class="v t-low">'+U(r.v)+'</span><span class="m">'+fmt(r.t)+' · '+esc(r.c)+'</span></li>'}).join("")+'</ul>':'<p>No lows in this period.</p>')
 +'<p class="note">Self-logged with Glide. Estimated A1C is a rough estimate from these readings, not a lab result.</p>'}
@@ -710,12 +710,16 @@ $("aa").onclick=function(){$("av").value.split(",").forEach(function(x){x=x.trim
 $("av").onkeydown=function(e){if(e.key==="Enter")$("aa").onclick()};
 function showTab(t){["home","trends","food","fit","more"].forEach(function(k){$("t-"+k).hidden=k!==t;var b=$("tb-"+k);if(k===t)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});window.scrollTo(0,0)}
 [].forEach.call($("tabs").querySelectorAll("button"),function(b){b.onclick=function(){showTab(b.dataset.t)}});
+function gmiOf(a){var c=a.filter(function(r){return r.s==="cgm"}),x=c.length?c:a;if(!x.length)return null;var sm=0,dy={};x.forEach(function(r){sm+=r.v;dy[r.t.slice(0,10)]=1});var nd=Object.keys(dy).length;if(c.length)nd=Math.min(nd,Math.ceil(c.length/288));return {v:3.31+0.02392*sm/x.length,days:nd,n:x.length,cgm:!!c.length}}
+function a1cUi(){var cut=Date.now()-14*864e5,g=gmiOf(S.r.filter(function(r){return new Date(r.t).getTime()>cut})),b=$("a1c"),l=$("a1cl");
+if(!g||g.days<3){b.textContent="–";l.textContent="est. A1C · "+(g?g.days:0)+"/3 days";return}
+var full=g.cgm&&g.days>=14&&g.n>=14*288*.7;b.textContent=g.v.toFixed(1)+"%";l.textContent=full?"est. A1C · 14 days":"est. A1C · "+Math.min(g.days,14)+"/14 days"}
 function render(){
 chips();renderMeals();renderRem();var w=inWin(),n=w.length;$("rng").textContent=U(S.lo)+"–"+U(S.hi)+" "+UL();var hr=new Date().getHours();$("hello").textContent=(hr<12?"Good morning":hr<18?"Good afternoon":"Good evening")+" · "+new Date().toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"});
 var c={low:0,in:0,high:0},sum=0;w.forEach(function(r){c[cls(r.v)]++;sum+=r.v});
 var p=function(k){return n?Math.round(c[k]/n*100):0};
 $("tir").textContent=n?p("in")+"%":"–";$("avg").textContent=n?U(sum/n):"–";
-var gl=S.goal||70;$("stk").textContent=streak(function(o){return o.n>=2&&o.i/o.n*100>=gl});
+var gl=S.goal||70;$("stk").textContent=streak(function(o){return o.n>=2&&o.i/o.n*100>=gl});a1cUi();
 var A=40,Z=300;$("zlo").style.flex=String(Math.max(1,S.lo-A));$("zin").style.flex=String(S.hi-S.lo);$("zhi").style.flex=String(Math.max(10,Z-S.hi));
 // alert from latest overall
 var all=S.r.slice().sort(function(a,b){return new Date(b.t)-new Date(a.t)}),a=$("alert");
