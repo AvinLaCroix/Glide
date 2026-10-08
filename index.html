@@ -290,7 +290,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 l</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 m</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -924,20 +924,24 @@ var FQ=[
 {k:"exp",q:"How much have you worked out before?",o:[["new","🌱","New to it"],["some","🔁","On and off"],["reg","⚡","Regularly"]]},
 {k:"days",q:"How many days a week can you go?",o:[["2","","2 days"],["3","","3 days"],["4","","4 days"],["5","","5 days"]]},
 {k:"mins",q:"How long per workout?",o:[["30","","About 30 min"],["45","","About 45 min"],["60","","About an hour"]]},
-{k:"where",q:"Where will you work out?",o:[["gym","🏋️","At a gym"],["home","🏠","At home","No equipment needed"],["both","🔀","Both"]]},
+{k:"where",q:"Where will you work out?",o:[["gym","🏋️","At a gym"],["home","🏠","At home"],["both","🔀","Both"]]},
+{k:"eq",q:"Any weights or equipment at home?",multi:1,when:function(a){return a.where==="home"},o:[["db","","Dumbbells"],["kb","","Kettlebell"],["band","","Resistance bands"],["bar","","Pull-up bar"],["bench","","Workout bench"],["none","","Nothing, just me"]]},
 {k:"easy",q:"Anything to go easy on?",multi:1,o:[["knee","","Knees"],["back","","Lower back"],["shld","","Shoulders"],["none","","Nothing"]]},
 {k:"when",q:"When will you usually work out?",o:[["am","🌅","Morning"],["mid","☀️","Afternoon"],["pm","🌙","Evening"]]}];
 var fStep=0,fAns={};
+function fOn(i){var Q=FQ[i];return !Q.when||Q.when(fAns)}
+function fVisN(){var n=0;for(var i=0;i<FQ.length;i++)if(fOn(i))n++;return n}
+function fPos(){var n=0;for(var i=0;i<=fStep;i++)if(fOn(i))n++;return n}
 function fq(){var Q=FQ[fStep],a=fAns[Q.k],d=$("fq");
 var on=function(v){return Q.multi?(a||[]).indexOf(v)>=0:a===v};
-d.innerHTML='<div class="pg"><i style="width:'+Math.round(fStep/FQ.length*100)+'%"></i></div><p class="qn">'+(fStep===0?"Let's build your plan · ":"")+(fStep+1)+' of '+FQ.length+'</p><h2>'+Q.q+'</h2>'+(Q.multi?'<p class="note" style="margin:0">Pick all that apply.</p>':'')+'<div class="opts">'+Q.o.map(function(o){return '<button data-v="'+o[0]+'" aria-pressed="'+on(o[0])+'">'+(o[1]?'<span class="e">'+o[1]+'</span>':'')+'<span>'+o[2]+(o[3]?'<small>'+o[3]+'</small>':'')+'</span></button>'}).join("")+'</div><div class="fnav">'+(fStep>0?'<button class="lk" id="fbk">← Back</button>':(S.fit?'<button class="lk" id="fcx">Cancel</button>':'<span></span>'))+(Q.multi?'<button id="fnx"'+((a&&a.length)?'':' disabled style="opacity:.4"')+'>Next</button>':'')+'</div>';
+d.innerHTML='<div class="pg"><i style="width:'+Math.round((fPos()-1)/fVisN()*100)+'%"></i></div><p class="qn">'+(fStep===0?"Let's build your plan · ":"")+fPos()+' of '+fVisN()+'</p><h2>'+Q.q+'</h2>'+(Q.multi?'<p class="note" style="margin:0">Pick all that apply.</p>':'')+'<div class="opts">'+Q.o.map(function(o){return '<button data-v="'+o[0]+'" aria-pressed="'+on(o[0])+'">'+(o[1]?'<span class="e">'+o[1]+'</span>':'')+'<span>'+o[2]+(o[3]?'<small>'+o[3]+'</small>':'')+'</span></button>'}).join("")+'</div><div class="fnav">'+(fStep>0?'<button class="lk" id="fbk">← Back</button>':(S.fit?'<button class="lk" id="fcx">Cancel</button>':'<span></span>'))+(Q.multi?'<button id="fnx"'+((a&&a.length)?'':' disabled style="opacity:.4"')+'>Next</button>':'')+'</div>';
 [].forEach.call(d.querySelectorAll(".opts button"),function(b){b.onclick=function(){var v=b.dataset.v;
  if(Q.multi){var c=fAns[Q.k]||[];if(v==="none")c=["none"];else{c=c.filter(function(x){return x!=="none"});var i=c.indexOf(v);if(i<0)c.push(v);else c.splice(i,1)}fAns[Q.k]=c;fq()}
  else{fAns[Q.k]=v;fNext()}}});
-if($("fbk"))$("fbk").onclick=function(){fStep--;fq()};
+if($("fbk"))$("fbk").onclick=function(){do{fStep--}while(fStep>0&&!fOn(fStep));fq()};
 if($("fcx"))$("fcx").onclick=function(){fShow()};
 if($("fnx"))$("fnx").onclick=fNext}
-function fNext(){if(fStep<FQ.length-1){fStep++;fq()}else{S.fit=fAns;S.fitDone={};save();fShow()}}
+function fNext(){if(fAns.where!=="home")delete fAns.eq;var n=fStep+1;while(n<FQ.length&&!fOn(n))n++;if(n<FQ.length){fStep=n;fq()}else{S.fit=fAns;S.fitDone={};save();fShow()}}
 function fStart(){fStep=0;fAns=S.fit?JSON.parse(JSON.stringify(S.fit)):{};$("fp").hidden=true;$("fq").hidden=false;fq()}
 var FX={sq:[["Goblet squat","Bodyweight squat"],["Glute bridge","Glute bridge"],"knee"],
 hg:[["Romanian deadlift (dumbbells)","Single-leg hip hinge"],["Hip thrust","Glute bridge"],"back"],
@@ -951,6 +955,16 @@ co:[["Plank","Plank"],["Dead bug","Dead bug"],"back"],
 c2:[["Side plank","Side plank"],["Bird dog","Bird dog"],"back"],
 ar:[["Curl and triceps pushdown","Backpack curl and chair dip"],["Curl and triceps pushdown","Backpack curl"],"shld"],
 ca:[["Standing calf raise (dumbbells)","Calf raise on a step"],["Seated calf raise","Calf raise on flat floor"],"knee"]};
+var HX={sq:[["db","Goblet squat (dumbbell)","Dumbbell glute bridge"],["kb","Kettlebell goblet squat","Glute bridge"],["band","Banded squat","Banded glute bridge"]],
+hg:[["db","Romanian deadlift (dumbbells)","Dumbbell glute bridge"],["kb","Kettlebell deadlift","Glute bridge"],["band","Banded good morning","Banded glute bridge"]],
+ps:[["db+bench","Dumbbell bench press","Incline push-up on a counter"],["db","Dumbbell floor press","Incline push-up on a counter"],["band","Banded chest press","Incline push-up on a counter"]],
+pl:[["bar","Pull-up (or slow lowering if you can't do one yet)","Band pull-apart"],["band","Band pulldown (anchor it high)","Band pull-apart"],["db","Bent-over dumbbell row","Bent-over dumbbell row"]],
+oh:[["db","Seated dumbbell shoulder press","Wall angel"],["kb","Kettlebell press","Wall angel"],["band","Band shoulder press","Band face pull"]],
+rw:[["db","One-arm dumbbell row","One-arm dumbbell row"],["kb","One-arm kettlebell row","One-arm kettlebell row"],["band","Seated band row","Seated band row"]],
+lu:[["db","Dumbbell reverse lunge","Dumbbell low step-up"]],
+lp:[["db","Dumbbell sumo squat","Glute bridge march"],["kb","Kettlebell swing","Glute bridge march"],["band","Banded lying hamstring curl","Banded lying hamstring curl"]],
+ar:[["db","Dumbbell curl and overhead triceps extension","Dumbbell curl"],["band","Band curl and triceps pushdown","Band curl"],["kb","Kettlebell curl and overhead triceps extension","Kettlebell curl"]],
+ca:[["db","Dumbbell calf raise on a step","Seated dumbbell calf raise"]]};
 var FM={sq:["Quads","Glutes"],hg:["Hamstrings","Glutes"],ps:["Chest","Shoulders","Arms"],pl:["Back","Arms"],oh:["Shoulders","Arms"],rw:["Back","Arms"],lu:["Quads","Glutes"],lp:["Quads","Glutes"],co:["Core"],c2:["Core"],ar:["Arms"],ca:["Calves"]};
 var FG=["Chest","Back","Shoulders","Arms","Quads","Hamstrings","Glutes","Core","Calves"];
 var FPL={FA:"sq ps pl co hg oh rw lu lp ca c2 ar",FB:"hg oh rw lu co sq ps pl lp ca c2 ar",FC:"lu ps rw lp c2 sq hg pl oh ca co ar",UP:"ps pl oh rw ar co c2",LO:"sq hg lu lp ca co c2"};
@@ -959,7 +973,7 @@ var FS={lean:{2:"FA FB",3:"FA FB FC",4:"FA FB CA FC",5:"UP LO CA UP LO"},str:{2:
 var FD={2:["Mon","Thu"],3:["Mon","Wed","Fri"],4:["Mon","Tue","Thu","Fri"],5:["Mon","Tue","Wed","Fri","Sat"]};
 function fPlan(A){var ids=FS[A.goal][A.days].split(" "),m=+A.mins,easy=A.easy||[],home=A.where==="home";
 var sets=A.goal==="lean"?(A.exp==="new"?"2 × 12–15":"3 × 10–15"):A.exp==="new"?"2 × 10–12":A.exp==="some"?"3 × 8–12":A.goal==="str"?"4 × 6–8":"3 × 10–12",n=m<=30?3:m<=45?4:5,cov={};
-var nm=function(k){var f=FX[k],v=(easy.indexOf(f[2])>=0&&f[1])?f[1]:f[0];return home?v[1]:v[0]};
+var eqp=A.eq||[],nm=function(k){var f=FX[k],ez=easy.indexOf(f[2])>=0&&f[1],v=ez?f[1]:f[0];if(home){var h=(HX[k]||[]).filter(function(x){return x[0].split("+").every(function(e){return eqp.indexOf(e)>=0})})[0];if(h)return ez?h[2]:h[1];return v[1]}return v[0]};
 var amt=function(k,q){return k==="co"||k==="c2"?(A.exp==="new"?"2 × 20–30 sec":"3 × 30–45 sec"):q?"2 × 12–15":k==="ca"?"3 × 12–15":sets};
 var days=ids.map(function(id,i){var W=FW[id];if(!W[1])return {id:id,i:i};var pool=FPL[id].split(" "),pk=[];
  while(pk.length<n){var best=null,bs=-1;pool.forEach(function(k){if(pk.indexOf(k)>=0)return;var sc=FM[k].filter(function(g){return !cov[g]}).length*10-(pk.some(function(q){return FM[q].join()===FM[k].join()})?5:0);if(sc>bs){bs=sc;best=k}});if(!best)break;pk.push(best);FM[best].forEach(function(g){cov[g]=1})}
@@ -983,7 +997,7 @@ if(A.sex==="f")tips.push('<b>Your cycle can shift your numbers.</b> Many people 
 if(A.when==="am")tips.push('<b>Mornings</b> often run a little higher during and after a workout.');
 if(A.when==="pm")tips.push('<b>Evening workouts</b> raise the chance of a low overnight.');
 tips.push('Ask your care team how to adjust insulin or snacks for exercise.');
-$("fp").innerHTML='<div class="fhero"><h2>Your '+A.days+'-day plan</h2><p class="note">A starting point. Stop if anything hurts.</p><p class="note" style="margin-top:4px">2 sets of 10 reps = do the move 10 times, rest, then 10 more.</p><div class="fchips"><span>'+FL.goal[A.goal]+'</span><span>'+A.mins+' min</span><span>'+FL.where[A.where]+'</span>'+((A.easy||[]).filter(function(x){return x!=="none"}).length?'<span>Easy on '+A.easy.filter(function(x){return x!=="none"}).map(function(x){return {knee:"knees",back:"back",shld:"shoulders"}[x]}).join(", ")+'</span>':'')+'</div>'+(function(mi){return '<p class="fcov">'+(mi.length?'Not covered this week: '+mi.join(", "):'✓ Every muscle group, every week')+'</p>'})(fCov(P))+'<div class="fweek"><span>This week</span><span><b>'+c+'</b> of '+P.length+' done</span></div><div class="bar" style="background:rgba(255,255,255,.15);height:8px;border-radius:99px;margin:6px 0 0"><i style="background:var(--in);width:'+Math.round(c/P.length*100)+'%"></i></div></div>'+
+$("fp").innerHTML='<div class="fhero"><h2>Your '+A.days+'-day plan</h2><p class="note">A starting point. Stop if anything hurts.</p><p class="note" style="margin-top:4px">2 sets of 10 reps = do the move 10 times, rest, then 10 more.</p><div class="fchips"><span>'+FL.goal[A.goal]+'</span><span>'+A.mins+' min</span><span>'+FL.where[A.where]+'</span>'+(A.where==="home"&&A.eq&&A.eq.indexOf("none")<0&&A.eq.length?'<span>'+A.eq.map(function(x){return {db:"Dumbbells",kb:"Kettlebell",band:"Bands",bar:"Pull-up bar",bench:"Bench"}[x]}).join(", ")+'</span>':'')+((A.easy||[]).filter(function(x){return x!=="none"}).length?'<span>Easy on '+A.easy.filter(function(x){return x!=="none"}).map(function(x){return {knee:"knees",back:"back",shld:"shoulders"}[x]}).join(", ")+'</span>':'')+'</div>'+(function(mi){return '<p class="fcov">'+(mi.length?'Not covered this week: '+mi.join(", "):'✓ Every muscle group, every week')+'</p>'})(fCov(P))+'<div class="fweek"><span>This week</span><span><b>'+c+'</b> of '+P.length+' done</span></div><div class="bar" style="background:rgba(255,255,255,.15);height:8px;border-radius:99px;margin:6px 0 0"><i style="background:var(--in);width:'+Math.round(c/P.length*100)+'%"></i></div></div>'+
 P.map(function(w,i){var d=dn.indexOf(i)>=0;return '<details class="wo'+(d?' dn':'')+'"><summary><span class="dy">'+w.d+'</span><span class="tt">'+w.t+'<b class="mu">'+w.mu+'</b><small>'+w.s+'</small></span></summary><div class="bd">'+w.x.map(function(e){return '<div class="ex"><div>'+esc(e[0])+(e[2]?'<small class="em">'+esc(e[2])+'</small>':'')+'</div><span>'+fAmt(e[1])+'</span></div>'}).join("")+'<p style="margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button data-fd="'+i+'"'+(d?' class="sec"':'')+'>'+(d?'Undo done':'Mark done')+'</button><button class="sec" data-fl="1">Log a reading</button></p></div></details>'}).join("")+
 '<section><h2>Exercise with type 1</h2><ul class="ftips">'+tips.map(function(t){return '<li>'+t+'</li>'}).join("")+'</ul></section><p style="text-align:center"><button class="sec" id="fre">Retake the questions</button></p>';
 $("fp").hidden=false;
