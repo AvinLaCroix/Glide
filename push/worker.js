@@ -20,13 +20,23 @@ export default {
         const b = await req.json();
         if (!validId(b.id) || !b.sub || !b.sub.endpoint || !b.sub.keys) return json({ error: "bad request" }, cors, 400);
         const all = await loadSubs(env);
+        const prev = all[b.id] || {};
         all[b.id] = {
+          os: prev.os || null,
           sub: b.sub,
           tz: String(b.tz || "America/Chicago").slice(0, 64),
           items: (Array.isArray(b.items) ? b.items : []).slice(0, 40).map(i => ({ t: String(i.t).slice(0, 5), ti: String(i.ti || "Glide").slice(0, 60), b: String(i.b || "").slice(0, 160) })),
           ns: b.ns && b.ns.u ? { u: String(b.ns.u).slice(0, 200), k: String(b.ns.k || "").slice(0, 100), lo: +b.ns.lo || 70, hi: +b.ns.hi || 180, goal: +b.ns.goal || 70, at: String(b.ns.at || "20:00").slice(0, 5), sk: Math.max(0, Math.min(9999, +b.ns.sk || 0)), skd: String(b.ns.skd || "").slice(0, 10) } : null,
           up: Date.now()
         };
+        await env.SUBS.put("subs", JSON.stringify(all));
+        return json({ ok: true }, cors);
+      }
+      if (req.method === "POST" && url.pathname === "/seen") {
+        const b = await req.json();
+        const all = await loadSubs(env);
+        if (!all[b.id]) return json({ error: "not signed up" }, cors, 404);
+        all[b.id].os = { d: String(b.d || "").slice(0, 10), n: Math.max(0, Math.min(99999, +b.n || 0)) };
         await env.SUBS.put("subs", JSON.stringify(all));
         return json({ ok: true }, cors);
       }
@@ -63,6 +73,10 @@ async function tick(env) {
     const s = all[id];
     const hm = localHM(s.tz);
     const due = s.items.filter(i => i.t === hm).map(i => ({ title: i.ti, body: i.b }));
+    if (s.os && s.os.n > 0 && hm === "21:00") {
+      const day = ms => new Intl.DateTimeFormat("en-CA", { timeZone: s.tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ms));
+      if (s.os.d === day(Date.now() - 864e5)) due.push({ title: "Glide: keep your " + s.os.n + "-day streak 🩸", body: "You haven't opened Glide today. Open it before midnight to keep your streak." });
+    }
     if (s.ns && s.ns.at === hm) {
       const m = await tirMessage(s.ns, s.tz).catch(() => null);
       if (m) due.push(m);

@@ -267,7 +267,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <input id="imp" type="file" accept=".csv,text/csv"><p class="note" id="impmsg"></p></details>
 <h3 class="grp">Settings</h3>
 <details aria-label="Phone notifications" id="pushsec"><summary><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Phone notifications</span></summary>
-<p class="note">Your check reminders, pre-bolus reminders, and an 8 PM heads-up when your streak is at risk, sent to your phone even when Glide is closed. The streak alert needs Live Dexcom connected.</p>
+<p class="note">Your check reminders, pre-bolus reminders, a 9 PM nudge if you haven't opened Glide yet that day (so your 🩸 streak stays alive), and an 8 PM heads-up when your time in range is under goal. Sent to your phone even when Glide is closed. The 8 PM one needs Live Dexcom connected.</p>
 <p id="pushst" style="font-weight:600"></p>
 <p><button id="pon">Turn on</button> <button class="sec" id="ptest" hidden>Send a test</button> <button class="sec" id="poff" hidden>Turn off</button></p>
 <p class="note">Keep using your Dexcom alarms for lows and highs. They're more reliable for that.</p></details>
@@ -296,7 +296,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <p><button id="bk">Make backup</button> <button class="sec" id="br">Restore from text below</button></p>
 <textarea id="bt" rows="5" aria-label="Backup text" placeholder="Your backup appears here. To restore, paste a backup here and press Restore."></textarea>
 <p class="note" id="bm"></p></details>
-<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 q</p></div>
+<p class="note" style="text-align:center;margin-top:18px">Glide · version 10/8 r</p></div>
 <div class="tab" id="t-fit" hidden>
 <section class="fq" id="fq" aria-label="Fitness questions"></section>
 <div id="fp" hidden></div>
@@ -453,7 +453,7 @@ for(var i=0;i<N;i++){var o=m[dkey(d)];if(o&&o.n>=2)pts.push([i,o.i/o.n*100]);d.s
 if(pts.length<2)return "";var X=function(i){return (10+i/(N-1)*280).toFixed(1)},Y=function(v){return (10+(100-v))};
 return '<svg viewBox="0 0 300 130" role="img" aria-label="Daily time in range trend"><line x1="10" x2="290" y1="'+Y(g)+'" y2="'+Y(g)+'" stroke="var(--mute)" stroke-dasharray="4 4"/><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="'+pts.map(function(p){return X(p[0])+","+Y(p[1])}).join(" ")+'"/>'+pts.map(function(p){return '<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="3.5" fill="var(--'+(p[1]>=g?"in":"high")+')"/>'}).join("")+'<text x="10" y="126" font-size="10" fill="var(--mute)">'+N+' days ago</text><text x="290" y="126" font-size="10" text-anchor="end" fill="var(--mute)">today</text></svg>'}
 function openStreak(){var t=dkey(new Date()),y=new Date();y.setDate(y.getDate()-1);var o=S.os||{};
-if(o.last!==t){o.n=o.last===dkey(y)?(o.n||0)+1:1;o.best=Math.max(o.best||0,o.n);o.last=t;S.os=o;save()}
+if(o.last!==t){o.n=o.last===dkey(y)?(o.n||0)+1:1;o.best=Math.max(o.best||0,o.n);o.last=t;S.os=o;save()}pushSeen();
 var e=$("osn"),b=$("osb");if(e){e.textContent=o.n;var lb="Daily streak: "+o.n+(o.n>1?" days":" day")+". Best: "+o.best+". Open Glide every day to keep it.";b.setAttribute("aria-label",lb);b.title=lb}}
 function dayHtml(all){var st=new Date();st.setHours(0,0,0,0);var t=all.filter(function(r){return new Date(r.t).getTime()>=st.getTime()}).slice().reverse();
 $("dayn").textContent=t.length?t.length+(t.length>1?" readings":" reading"):"";if(!t.length)return '<p class="note" style="margin:8px 0 0">No readings yet today.</p>';
@@ -897,11 +897,13 @@ $("pon").onclick=function(){if(!PUSH_URL){pushUi("Almost ready. The notification
 if(!pushOk()){pushUi(navigator.standalone?"This copy of Glide can't get notifications. Make a backup, remove Glide from your Home Screen, add it again from Safari, then restore.":"Open Glide from its Home Screen icon to turn these on. In Safari, tap Share, then Add to Home Screen.");return}
 pushUi("Asking your phone…");Notification.requestPermission().then(function(p){if(p!=="granted")throw new Error("denied");return navigator.serviceWorker.register("sw.js")}).then(function(){return navigator.serviceWorker.ready}).then(function(reg){
 return fetch(PUSH_URL+"/vapid").then(function(r){return r.json()}).then(function(v){return reg.pushManager.getSubscription().then(function(s){return s||reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:unb64(v.key)})})})}).then(function(sub){
-S.push={on:true,id:(S.push&&S.push.id)||rid()};save();return pushPost("/sub",pushBody(sub)).then(function(){try{localStorage.setItem("glide_push_h",JSON.stringify(pushBody(sub)))}catch(e){}pushUi()})}).catch(function(e){
+S.push={on:true,id:(S.push&&S.push.id)||rid()};save();return pushPost("/sub",pushBody(sub)).then(function(){try{localStorage.setItem("glide_push_h",JSON.stringify(pushBody(sub)))}catch(e){}pushSeen(true);pushUi()})}).catch(function(e){
 pushUi(e.message==="denied"?"Notifications are blocked. Turn them on in iPhone Settings, then Notifications, then Glide.":"Couldn't turn on notifications. Check your connection and try again.")})};
 $("ptest").onclick=function(){pushUi("Sending a test…");pushSync(true);pushPost("/test",{id:S.push.id}).then(function(r){pushUi(r.ok?"Test sent. It should pop up in a few seconds.":"The test didn't go through. Try Turn off, then Turn on.")}).catch(function(){pushUi("Couldn't reach the notification server.")})};
 $("poff").onclick=function(){var id=S.push&&S.push.id;S.push={on:false,id:id};save();pushUi("Off.");pushSub().then(function(s){if(s)s.unsubscribe()}).catch(function(){});if(PUSH_URL&&id)pushPost("/unsub",{id:id}).catch(function(){});try{localStorage.removeItem("glide_push_h")}catch(e){}};
 var pushT;
+function pushSeen(force){if(!(S.push&&S.push.on)||!PUSH_URL||!S.os)return;var t=S.os.last,k="glide_seen",o="";try{o=localStorage.getItem(k)||""}catch(e){}if(!force&&o===t)return;
+pushPost("/seen",{id:S.push.id,d:t,n:S.os.n||0}).then(function(){try{localStorage.setItem(k,t)}catch(e){}}).catch(function(){})}
 function nsBase(u){u=String(u||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;return u.replace(/[?#].*$/,"").replace(/\/api\/v1.*$/i,"").replace(/\/+$/,"")}
 function nsArrow(d){return {DoubleUp:"⇈",SingleUp:"↑",FortyFiveUp:"↗",Flat:"→",FortyFiveDown:"↘",SingleDown:"↓",DoubleDown:"⇊"}[d]||""}
 function nsAgo(ts){var m=Math.max(0,Math.round((Date.now()-ts)/6e4));return m<1?"just now":m<60?m+"m ago":Math.round(m/60)+"h ago"}
