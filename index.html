@@ -83,6 +83,9 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 .ml{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
 .rf{padding:4px 12px;font-size:.88rem;font-weight:600}
 .mbt{display:flex;gap:6px}
+.mtag{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:2px;background:var(--tint);color:var(--acc)}.mtag.h{background:var(--highbg);color:var(--high)}.mtag.l{background:var(--lowbg);color:var(--low)}
+.hl.m{border-left-color:var(--line)}
+.insb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;position:relative;background:var(--card);color:var(--ink);border:1px solid var(--line);border-left:5px solid var(--in);border-radius:16px;padding:10px 34px 10px 14px;margin:10px 0;font-weight:400}.insb.h{border-left-color:var(--high)}.insb.l{border-left-color:var(--low)}.insb b{font-size:.95rem}.insb span{font-size:.88rem;opacity:.85}.insb i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mute);font-size:1.3rem}
 .mdb[aria-pressed="true"]{background:var(--acc);color:#fff;border-color:var(--acc)}
 .mealb.made summary{text-decoration:line-through;opacity:.55}
 .mealb>details{margin:4px 0 0!important;padding:4px 0 0!important;border:0;background:transparent;box-shadow:none!important}
@@ -190,7 +193,7 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
  <div class="rleg"><span>Low</span><span id="rng"></span><span>High</span></div>
 </section>
 <div class="tiles"><div><b id="tir">–</b><span>in range</span></div><div><b id="avg">–</b><span>average</span></div><div class="tl"><b id="stk">0</b><span>days at goal</span></div><div><b id="a1c">–</b><span id="a1cl">est. A1C</span></div></div>
-<div id="rph"></div><div class="chips pchips" id="chips"></div>
+<div id="rph"></div><div id="ins"></div><div class="chips pchips" id="chips"></div>
 <section aria-label="Today"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0">Today</h2><span class="note" id="dayn"></span></div><div id="day"></div></section>
 <section aria-label="Next meal" class="next" id="next"></section>
 <section aria-label="Log a meal or dose" class="lgs"><details id="lgd"><summary><h2>Log a meal or dose</h2></summary>
@@ -216,6 +219,8 @@ p:has(>button)>button:not(.ib){flex:0 1 auto}
 <div class="chips pchips"></div>
 <section aria-label="Week over week"><h2>This week vs last week</h2><div id="wk"></div></section>
 <section aria-label="Goals and trend"><h2>Goal, streaks and trend</h2><label>Daily goal: time in range at least (%)<input id="goal" type="number" min="10" max="100" inputmode="numeric"></label><div class="stats" id="strk"></div><div id="trend" style="margin-top:12px"></div><p class="note">Each dot is one day in range. The dashed line is your goal.</p></section>
+<section aria-label="How meals hit you"><h2>How meals hit you</h2><div id="mhit"></div></section>
+<section aria-label="What is behind your numbers"><h2>What’s behind your numbers</h2><div id="why"></div></section>
 <section aria-label="Patterns"><h2>Patterns by time of day</h2><div id="pat" class="note">Add readings to see patterns.</div></section>
 <section aria-label="Day dial"><h2>Day dial</h2><div class="chips" id="dmode" style="margin-bottom:6px"></div><div id="chart"></div><div id="dsel" class="dsel" hidden></div><p class="note">Each dot is a reading. Midnight is at the top. Farther out is higher. Newer dots are darker, older ones fade. Tap a dot to see it. Colored arcs mark repeat lows or highs.</p><div id="hilo"></div><div id="rpt"></div></section>
 </div>
@@ -411,7 +416,7 @@ S.meals.forEach(function(m,i){h+='<button class="sec" aria-pressed="'+(selMeal==
 mp.innerHTML=h||'<span class="note">Add meals under My meals to tag readings quickly.</span>';
 [].forEach.call(mp.querySelectorAll("button"),function(b){b.onclick=function(){var m=S.meals[+b.dataset.i];selMeal=selMeal===m.name?"":m.name;if(selMeal&&!$("cb").value)$("cb").value=m.carbs;renderMeals()}});
 $("ml").innerHTML=S.meals.map(function(m,i){var z=S.r.filter(function(r){return r.m===m.name&&r.c==="After meal"});
-var line=z.length?'After this meal you average <b>'+U(z.reduce(function(a,r){return a+r.v},0)/z.length)+'</b> '+UL()+' ('+z.length+' reading'+(z.length>1?'s':'')+')':'No after-meal readings yet. Pick this meal and log one.';
+var g=mealHits().by[m.name],line=g?mhLine(g):z.length?'After this meal you average <b>'+U(z.reduce(function(a,r){return a+r.v},0)/z.length)+'</b> '+UL()+' ('+z.length+' reading'+(z.length>1?'s':'')+')':'No after-meal readings yet. Pick this meal and log one.';
 return '<li><span class="v">'+esc(m.name)+'</span><span class="m">'+m.carbs+' g carbs<br>'+line+'</span><button class="sec" data-i="'+i+'" aria-label="Delete meal">Delete</button></li>'}).join("")||'<li class="note">No meals yet. Add ones you eat often.</li>';
 [].forEach.call($("ml").querySelectorAll("button"),function(b){b.onclick=function(){S.meals.splice(+b.dataset.i,1);save();renderMeals()}})}
 var TG=["Sick","Stressed","Exercise","Late meal","Missed dose"],selTg=[],eid=null,undo=null,ut=0;
@@ -561,7 +566,7 @@ return '<div class="note" style="margin:8px 0 2px">'+(k>1?'Ingredients for '+k+'
 function nz(x){return x.toLowerCase().replace(/[^a-z ]/g,"").trim().replace(/ies$/,"y").replace(/(es|s)$/,"")}
 function mt2(a,b){return a===b||(" "+b+" ").indexOf(" "+a+" ")>=0||(" "+a+" ").indexOf(" "+b+" ")>=0}
 function cookList(){var me=S.ing.map(nz);return RC.filter(okRecipe).map(function(r){var ms=[];r[2].forEach(function(g){var al=g.split("/").filter(function(a){return !isBlocked(a)});if(!al.some(function(a){return me.some(function(b){return mt2(nz(a),b)})}))ms.push(al.join(" or "))});return {r:r,miss:ms}})}
-function recHtml(o,op){var r=o.r;return '<details style="box-shadow:none;margin:8px 0;padding:10px 12px"'+(op?' open':'')+'><summary>'+esc(r[0])+' <span class="note">~'+r[1]+' g carbs'+(o.pp>1?' each':'')+'</span></summary>'+(o.miss.length?'<p class="note">Missing: '+esc(o.miss.join(", "))+'</p>':'')+amHtml(o)+(o.pp>2?'<div class="note" style="margin:6px 0 0">Cooking for '+o.pp+'? Use a bigger pan or cook in batches so it browns instead of steams.</div>':'')+'<div class="note" style="margin:6px 0 0">Steps (tap to check off)</div><div style="margin:2px 0 10px">'+r[3].split("|").map(function(x){return scaleTxt(x,o.pp>1?o.pp:1,true)}).map(function(x,k){var key=(o.ctx||"c")+"|"+r[0]+"|"+k,dn=stepDone[key];return '<label style="display:flex;gap:10px;align-items:flex-start;margin:0;padding:9px 0;border-top:1px solid var(--line);color:var(--ink);'+(dn?'text-decoration:line-through;opacity:.5':'')+'"><input type="checkbox" data-st="'+ea(key)+'"'+(dn?' checked':'')+' style="width:20px;height:20px;padding:0;margin-top:1px;flex:none;accent-color:var(--acc)"><span><b>'+(k+1)+'.</b> '+esc(x)+'</span></label>'}).join("")+'</div><div style="display:flex;gap:8px"><button class="sec" data-m="'+ea(r[0])+'" data-c="'+r[1]+'" style="flex:1">Save meal</button><button class="sec" data-stx="'+ea((o.ctx||"c")+"|"+r[0]+"|")+'" style="flex:1;font-weight:400">Reset steps</button></div></details>'}
+function recHtml(o,op){var r=o.r;return '<details style="box-shadow:none;margin:8px 0;padding:10px 12px"'+(op?' open':'')+'><summary>'+esc(r[0])+mhTag(r[0])+' <span class="note">~'+r[1]+' g carbs'+(o.pp>1?' each':'')+'</span></summary>'+(o.miss.length?'<p class="note">Missing: '+esc(o.miss.join(", "))+'</p>':'')+amHtml(o)+(o.pp>2?'<div class="note" style="margin:6px 0 0">Cooking for '+o.pp+'? Use a bigger pan or cook in batches so it browns instead of steams.</div>':'')+'<div class="note" style="margin:6px 0 0">Steps (tap to check off)</div><div style="margin:2px 0 10px">'+r[3].split("|").map(function(x){return scaleTxt(x,o.pp>1?o.pp:1,true)}).map(function(x,k){var key=(o.ctx||"c")+"|"+r[0]+"|"+k,dn=stepDone[key];return '<label style="display:flex;gap:10px;align-items:flex-start;margin:0;padding:9px 0;border-top:1px solid var(--line);color:var(--ink);'+(dn?'text-decoration:line-through;opacity:.5':'')+'"><input type="checkbox" data-st="'+ea(key)+'"'+(dn?' checked':'')+' style="width:20px;height:20px;padding:0;margin-top:1px;flex:none;accent-color:var(--acc)"><span><b>'+(k+1)+'.</b> '+esc(x)+'</span></label>'}).join("")+'</div><div style="display:flex;gap:8px"><button class="sec" data-m="'+ea(r[0])+'" data-c="'+r[1]+'" style="flex:1">Save meal</button><button class="sec" data-stx="'+ea((o.ctx||"c")+"|"+r[0]+"|")+'" style="flex:1;font-weight:400">Reset steps</button></div></details>'}
 var stepDone={};
 document.addEventListener("change",function(e){var t=e.target;if(t&&t.dataset&&t.dataset.st){if(t.checked)stepDone[t.dataset.st]=1;else delete stepDone[t.dataset.st];var l=t.parentNode;l.style.textDecoration=t.checked?"line-through":"";l.style.opacity=t.checked?".5":""}});
 document.addEventListener("click",function(e){var t=e.target;if(t&&t.dataset&&t.dataset.stx!==undefined){var p=t.dataset.stx;Object.keys(stepDone).forEach(function(k){if(k.indexOf(p)===0)delete stepDone[k]});[].forEach.call(t.closest("details").querySelectorAll("input[data-st]"),function(c){c.checked=false;c.parentNode.style.textDecoration="";c.parentNode.style.opacity=""})}});
@@ -746,6 +751,53 @@ function fixPlan(){var sh=S.shop;if(!sh||!sh.p)return;var pl=pools(),used=usedNa
 sh.p=sh.p.map(function(d){return d.map(function(n,j){var r=n&&byName(n),pool=j===0?pl.b:pl.m;if(r&&okRecipe(r))return n;if(!pool.length)return "";var c=pool.filter(function(x){return !used[x[0]]});if(!c.length)c=pool;var pk=c[Math.floor(Math.random()*c.length)][0];used[pk]=1;return pk})})}
 function mdK(k){return !!(S.shop&&S.shop.md&&S.shop.md[k])}
 function mkBtn(k,lb){var on=mdK(k);return '<button class="sec rf mdb" data-mk="'+k+'" aria-pressed="'+on+'" aria-label="'+(on?"Unmark ":"Mark ")+lb+' as made">'+(on?"✓ Made":"Made")+'</button>'}
+var MHc={k:"",v:null};
+function rT(r){return new Date(r.t).getTime()}
+function dKey(t){var d=new Date(t);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function sortedR(){var c=Date.now()-90*864e5;return S.r.filter(function(r){return rT(r)>=c}).map(function(r){return {r:r,t:rT(r)}}).sort(function(a,b){return a.t-b.t})}
+function after(R,t0,a,b){var o=[],lo=0,hi=R.length;while(lo<hi){var m=(lo+hi)>>1;if(R[m].t<t0+a)lo=m+1;else hi=m}for(var i=lo;i<R.length&&R[i].t<=t0+b;i++)o.push(R[i]);return o}
+function mealEvents(R){var ev=[],last={};R.forEach(function(x){var r=x.r;if(r.s==="cgm"||!(r.m||r.cb>0))return;var k=r.m||"";if(k&&last[k]&&x.t-last[k]<90*6e4)return;if(k)last[k]=x.t;
+var w=after(R,x.t,20*6e4,180*6e4);if(w.length<2)return;var pk=0,mn=1e9;w.forEach(function(y){pk=Math.max(pk,y.r.v);mn=Math.min(mn,y.r.v)});
+ev.push({r:r,t:x.t,name:r.m,cb:r.cb,pk:pk,rise:pk-r.v,ok:pk<=S.hi&&mn>=S.lo,lo:mn<S.lo})});return ev}
+function mealHits(){var R=sortedR(),k=S.r.length+":"+(R.length?R[R.length-1].t:0)+":"+S.lo+":"+S.hi;if(MHc.k===k)return MHc.v;
+var ev=mealEvents(R),G={};ev.forEach(function(e){if(!e.name)return;var g=G[e.name]||(G[e.name]={name:e.name,n:0,pk:0,rise:0,ok:0,lo:0,hi:0});g.n++;g.pk+=e.pk;g.rise+=e.rise;if(e.ok)g.ok++;if(e.lo)g.lo++;if(e.pk>S.hi)g.hi++});
+var L=Object.keys(G).map(function(k){var g=G[k];g.pk/=g.n;g.rise/=g.n;g.v=g.n<2?"new":g.lo/g.n>=.5?"low":g.ok/g.n>=.67?"good":g.hi/g.n>=.5?"spike":"mixed";return g});
+L.sort(function(a,b){return (b.n>1)-(a.n>1)||b.ok/b.n-a.ok/a.n||a.pk-b.pk});MHc={k:k,v:{list:L,by:G,ev:ev,R:R}};return MHc.v}
+function mhLine(g){return 'Peaks ~'+U(g.pk)+' '+UL()+' · in range '+g.ok+' of '+g.n+' time'+(g.n>1?'s':'')}
+function mhTag(name){var g=mealHits().by[name];if(!g||g.n<2)return "";g=mealHits().list.filter(function(x){return x.name===name})[0];
+return g.v==="good"?'<span class="mtag g">Steady for you</span>':g.v==="spike"?'<span class="mtag h">Spikes you</span>':g.v==="low"?'<span class="mtag l">Drops you low</span>':''}
+function mealHitHtml(){var L=mealHits().list;if(!L.length)return '<p class="note">Pick a meal when you log it under <b>Log a meal or dose</b>. After a couple of times, you’ll see which meals keep you in range.</p>';
+var lab={good:["","Steady for you"],spike:["h","Spikes you"],low:["l","Drops you low"],mixed:["m","Mixed"],"new":["m","1 time so far"]};
+return L.slice(0,10).map(function(g){var b=lab[g.v];return '<div class="hl '+b[0]+'"><div class="hlt"><b>'+esc(g.name)+'</b><span>'+b[1]+'</span></div><div>'+mhLine(g)+'</div></div>'}).join("")+'<p class="note" style="margin:6px 0 0">From your readings in the 3 hours after each meal.</p>'}
+function whyList(){var H=mealHits(),R=H.R,ev=H.ev,out=[],mt=S.mt,bM=mins(mt.b),dM=mins(mt.d),avg=function(a){return a.reduce(function(s,y){return s+y.r.v},0)/a.length},hm=function(t){return hr12(Math.floor(t/60))};
+// late dinners -> next morning
+var dn={};ev.forEach(function(e){var d=new Date(e.t),m=d.getHours()*60+d.getMinutes();if(m<15*60)return;var k=dKey(e.t);if(!dn[k]||e.t>dn[k].t)dn[k]={t:e.t,late:m>dM+90||(e.r.tg&&e.r.tg.indexOf("Late meal")>=0)}});
+var lt=[],ot=[];Object.keys(dn).forEach(function(k){var x=dn[k],b=new Date(k+"T00:00").getTime()+864e5+bM*6e4,w=after(R,b,-180*6e4,30*6e4);if(w.length<2)return;(x.late?lt:ot).push(avg(w))});
+if(lt.length>=2&&ot.length>=2){var df=lt.reduce(function(s,v){return s+v},0)/lt.length-ot.reduce(function(s,v){return s+v},0)/ot.length;
+if(Math.abs(df)>=20)out.push({t:df>0?"h":"i",p:df>0?3:6,ti:"Late dinners",line:"Mornings run about "+U(Math.abs(df))+" "+UL()+" "+(df>0?"higher":"lower")+" after dinners past "+hm(dM+90)+" ("+lt.length+" late vs "+ot.length+" on-time).",why:df>0?"Earlier dinners, or talking to your care team about evening doses, may help.":""})}
+// exercise -> lows within 24h
+var ex={};R.forEach(function(x){var r=x.r;if(r.s!=="cgm"&&(r.c==="Exercise"||(r.tg&&r.tg.indexOf("Exercise")>=0))){var k=dKey(x.t);if(!ex[k])ex[k]=x.t}});
+var days={};R.forEach(function(x){days[dKey(x.t)]=1});var exk=Object.keys(ex),eL=0,oL=0,oN=0;
+exk.forEach(function(k){if(after(R,ex[k],0,24*36e5).some(function(y){return y.r.v<S.lo}))eL++});
+Object.keys(days).forEach(function(k){if(ex[k])return;var s=new Date(k+"T00:00").getTime();oN++;if(after(R,s,0,864e5-1).some(function(y){return y.r.v<S.lo}))oL++});
+if(exk.length>=2&&oN>=3&&eL/exk.length-oL/oN>=.25)out.push({t:"l",p:1,ti:"After exercise",line:"You went low within a day of exercise on "+eL+" of "+exk.length+" workout days, vs "+oL+" of "+oN+" other days.",why:"Lows can come hours later. A snack or a talk with your care team about doses on workout days may help."});
+// big vs small meals
+var big=ev.filter(function(e){return e.cb>=60}),sm=ev.filter(function(e){return e.cb>0&&e.cb<=40});
+if(big.length>=2&&sm.length>=2){var bp=big.reduce(function(s,e){return s+e.pk},0)/big.length,sp=sm.reduce(function(s,e){return s+e.pk},0)/sm.length;
+if(bp-sp>=30)out.push({t:"h",p:4,ti:"Bigger meals",line:"Meals with 60 g+ carbs peak around "+U(bp)+" "+UL()+", vs "+U(sp)+" for meals under 40 g.",why:"Splitting carbs across the day or pre-bolusing earlier for big meals may help."})}
+// weekends vs weekdays
+var wd={i:0,n:0},we={i:0,n:0},wdd={},wed={};R.forEach(function(x){var d=new Date(x.t).getDay(),o=d===0||d===6?we:wd;o.n++;if(x.r.v>=S.lo&&x.r.v<=S.hi)o.i++;(o===we?wed:wdd)[dKey(x.t)]=1});
+if(Object.keys(wed).length>=2&&Object.keys(wdd).length>=3){var a=we.i/we.n*100,b=wd.i/wd.n*100;if(Math.abs(a-b)>=10)out.push({t:a<b?"h":"i",p:5,ti:"Weekends",line:"Time in range is "+Math.round(a)+"% on weekends vs "+Math.round(b)+"% on weekdays.",why:a<b?"Different meal times or routines on weekends are a common cause.":""})}
+// worst spiking meal
+var sp=H.list.filter(function(g){return g.v==="spike"}).sort(function(a,b){return b.pk-a.pk})[0];
+if(sp)out.push({t:"h",p:2,ti:esc(sp.name),line:"Went above your range "+sp.hi+" of "+sp.n+" times, peaking ~"+U(sp.pk)+" "+UL()+".",why:"Try a smaller portion, a pre-bolus, or a steadier swap from How meals hit you."});
+var lw=H.list.filter(function(g){return g.v==="low"})[0];
+if(lw)out.push({t:"l",p:1,ti:esc(lw.name),line:"You went low after this "+lw.lo+" of "+lw.n+" times.",why:"Talk with your care team about the dose for this meal."});
+return out.sort(function(a,b){return a.p-b.p})}
+function whyHtml(){var L=whyList();if(!L.length)return '<p class="note">Keep logging meals, exercise, and tags. Once there’s enough, Glide will point out what seems to push your numbers up or down.</p>';
+return L.map(function(o){return '<div class="hl '+(o.t==="i"?"":o.t)+'"><div class="hlt"><b>'+o.ti+'</b></div><div>'+o.line+'</div>'+(o.why?'<div class="note" style="margin-top:4px">'+o.why+'</div>':'')+'</div>'}).join("")+'<p class="note" style="margin:6px 0 0">Possible links from the last 90 days, not a diagnosis. Check with your care team before changing doses.</p>'}
+function insHome(){var L=whyList(),o=L[0],el=$("ins");if(!el)return;if(!o){el.innerHTML="";return}
+el.innerHTML='<button class="insb '+(o.t==="i"?"":o.t)+'" id="insb"><b>'+o.ti+'</b><span>'+o.line+'</span><i>›</i></button>';$("insb").onclick=function(){showTab("trends");var s=$("why");if(s)s.scrollIntoView({block:"start"})}}
 function swapMeal(i,j){var sh=S.shop,pl=pools(),pool=j===0?pl.b:pl.m,cur=sh.p[i][j],used=usedNames(sh),c=pool.filter(function(x){return x[0]!==cur&&!used[x[0]]});
 if(!c.length)c=pool.filter(function(x){return x[0]!==cur});if(!c.length)return false;sh.p[i][j]=c[Math.floor(Math.random()*c.length)][0];save();return true}
 function renderAv(){$("avc").innerHTML=S.avoid.map(function(x,i){return '<button class="sec" data-i="'+i+'" aria-label="Remove '+ea(x)+'">'+esc(x)+' ×</button>'}).join("");
@@ -878,6 +930,7 @@ DP=[];var dn=DS.length,dNow=Date.now(),dSpan=S.dial==="today"?864e5:S.days*864e5
 (S.dial==="today"?[]:RP).forEach(function(o){var a1=o.a/24*2*Math.PI-Math.PI/2,a2=(o.a+o.len)/24*2*Math.PI-Math.PI/2,q=R+2,lg=o.len>12?1:0;s+='<path d="M'+(cx+q*Math.cos(a1))+','+(cy+q*Math.sin(a1))+' A'+q+','+q+' 0 '+lg+',1 '+(cx+q*Math.cos(a2))+','+(cy+q*Math.sin(a2))+'" fill="none" stroke="var(--'+(o.t==="l"?"low":"high")+')" stroke-width="7" stroke-linecap="round" opacity=".85"/>'});
 s+='</svg>';$("chart").innerHTML=DS.length?s:'<p class="note">'+(S.dial==="today"&&n?'No readings yet today.':'Add a reading to see your day dial.')+'</p>';dialBind();
 $("day").innerHTML=dayHtml(all);$("next").innerHTML=nextHtml();
+$("mhit").innerHTML=mealHitHtml();$("why").innerHTML=whyHtml();insHome();
 $("pat").innerHTML=(patHtml(w)||"Add a few readings across the day to see patterns. Share what you notice with your care team.")+tagHtml(w);
 $("wk").innerHTML=weekHtml();$("strk").innerHTML=goalHtml();$("trend").innerHTML=trendHtml()||'<p class="note">Log readings on at least 2 days to see your trend.</p>';
 // list
